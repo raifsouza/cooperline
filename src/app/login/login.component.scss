@@ -1,0 +1,12 @@
+/* Você pode adicionar estilos específicos aqui se precisar */
+/* No entanto, com Bootstrap, muito do estilo já está pronto */
+
+.card-header {
+  border-bottom: 0;
+}
+
+.btn-primary {
+  // Garantindo o azul específico caso o Bootstrap seja sobrescrito em outro lugar
+  background-color: #007bff !important;
+  border-color: #007bff !important;
+}
