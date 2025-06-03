@@ -1,0 +1,7 @@
+.navbar-toggler {
+  border: none;
+  &:focus {
+    box-shadow: none;
+  }
+  display: block !important;
+}
