@@ -4,17 +4,19 @@ import { CommonModule } from '@angular/common'; // Importe CommonModule para *ng
 import { AuthService } from '../auth.service';
 import { Subscription } from 'rxjs'; // Para gerenciar a inscrição ao observable
 import { NavbarComponent } from '../shared/navbar/navbar.component';
+import { SidenavComponent } from '../shared/sidenav/sidenav.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, NavbarComponent], // CommonModule para *ngIf (se usar)
+  imports: [CommonModule, NavbarComponent, SidenavComponent], // CommonModule para *ngIf (se usar)
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
   userName: string | null = null;
   private userSubscription: Subscription | null = null; // Para gerenciar a inscrição
+  isSidenavVisible: boolean = false;
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -27,6 +29,16 @@ export class DashboardComponent implements OnInit {
         this.router.navigate(['/login']);
       }
     });
+  }
+
+  handleToggleSidenavRequest(): void {
+    this.isSidenavVisible = !this.isSidenavVisible;
+    console.log('DashboardComponent: Sidenav visibility:', this.isSidenavVisible);
+  }
+
+  handleCloseSidenavRequest(): void {
+    this.isSidenavVisible = false;
+    console.log('DashboardComponent: Sidenav close requested.');
   }
 
   // logout(): void {

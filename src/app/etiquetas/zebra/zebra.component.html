@@ -1,0 +1,7 @@
+<app-navbar (toggleSidenavRequest)="handleToggleSidenavRequest()"></app-navbar>
+<div class="container-zebra">
+  <h2>Sua area de impressão Zebra</h2>
+  <p>Area restrita</p>
+</div>
+
+<app-sidenav [isOpen]="isSidenavVisible" (closeSidenavRequest)="handleCloseSidenavRequest()"></app-sidenav>

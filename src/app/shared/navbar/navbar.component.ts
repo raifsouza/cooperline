@@ -1,19 +1,21 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, EventEmitter ,Output } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../auth.service'; // Ajuste o caminho do AuthService
 import { Subscription } from 'rxjs';
+import { SidenavComponent } from '../sidenav/sidenav.component';
 
 @Component({
   selector: 'app-navbar', // O seletor que você usará para incluir a navbar
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule], //removi só pra parar de dar erro por não ter mais o botão de "MeuApp"
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   userName: string | null = null;
   private userSubscription: Subscription | null = null;
+  @Output() toggleSidenavRequest = new EventEmitter<void>();
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -23,6 +25,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
       // Opcional: Se a navbar precisar saber se o usuário não está logado para talvez esconder algo
       // ou redirecionar, mas o redirecionamento principal deve vir de guards ou da rota principal.
     });
+  }
+
+  onMenuButtonClick(): void {
+    console.log("Navbar")
+    this.toggleSidenavRequest.emit();
+    console.log('NAVBAR: Evento toggleSidenavRequest emitido!');
   }
 
   logout(): void {

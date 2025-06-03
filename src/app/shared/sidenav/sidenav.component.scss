@@ -1,0 +1,180 @@
+// Importa o módulo de cores do Sass para usar funções modernas de cor
+@use 'sass:color';
+
+// Variáveis SCSS para fácil customização
+$sidenav-width: 280px; // Largura da sidenav quando aberta
+$sidenav-background: #ffffff; // Cor de fundo da sidenav
+$sidenav-text-color: #333333; // Cor do texto principal
+$sidenav-header-background: #f8f9fa; // Cor de fundo do cabeçalho da sidenav
+$sidenav-header-padding: 1rem;
+$sidenav-link-padding: 0.75rem 1.5rem;
+$sidenav-link-hover-background: #e9ecef;
+$sidenav-link-active-background: #007bff; // Cor de link ativo (exemplo: azul Bootstrap)
+$sidenav-link-active-color: #ffffff;
+$transition-speed: 0.3s; // Velocidade da transição de abertura/fechamento
+$backdrop-background: rgba(0, 0, 0, 0.5); // Cor do backdrop
+
+// Container principal
+.sidenav-container {
+  position: relative; // Ou fixed, dependendo de como você quer que se comporte com o scroll
+  z-index: 1040; // Deve estar acima do conteúdo, mas abaixo de modais de prioridade mais alta
+}
+
+// Backdrop
+.sidenav-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: $backdrop-background;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity $transition-speed ease-out, visibility 0s $transition-speed;
+  z-index: 1; // Abaixo da sidenav, mas acima do conteúdo da página
+}
+
+// Sidenav principal
+.sidenav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh; // Ocupa toda a altura da viewport
+  width: $sidenav-width;
+  background-color: $sidenav-background;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+
+  display: flex;
+  flex-direction: column; // Organiza header e nav verticalmente
+
+  // Estado inicial (fechada)
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform $transition-speed ease-in-out, visibility 0s $transition-speed;
+  z-index: 2; // Acima do backdrop
+}
+
+// Estilos para o estado aberto (quando .sidenav-open é aplicado ao container)
+.sidenav-container.sidenav-open {
+  .sidenav-backdrop {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s; // Remove o delay da transição de visibilidade ao abrir
+  }
+
+  .sidenav {
+    transform: translateX(0);
+    visibility: visible;
+    transition-delay: 0s;
+  }
+}
+
+// Cabeçalho da Sidenav
+.sidenav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $sidenav-header-padding;
+  background-color: $sidenav-header-background;
+  border-bottom: 1px solid #dee2e6;
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: $sidenav-text-color;
+  }
+
+  .closebtn {
+    font-size: 1.5rem; // Tamanho do "X"
+    font-weight: bold;
+    color: #6c757d;
+    background: none;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      color: #007bff;
+    }
+  }
+}
+
+// Navegação da Sidenav
+.sidenav-nav {
+  flex-grow: 1; // Faz a navegação ocupar o espaço restante
+  overflow-y: auto; // Adiciona scroll se os links excederem a altura
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+
+  > a,
+  > .sidenav-item.submenu-trigger {
+    display: block;
+    justify-content: space-between; // Para alinhar o texto e a seta
+    align-items: center;
+    padding: $sidenav-link-padding; // Usa o mesmo padding dos links
+    color: $sidenav-text-color;
+    font-size: 1rem; // Usa o mesmo tamanho de fonte dos links
+    cursor: pointer;
+    transition: background-color 0.2s ease-out, color 0.2s ease-out;
+    user-select: none; // Impede a seleção de texto ao clicar
+
+    &:hover {
+      background-color: $sidenav-link-hover-background;
+      color: color.adjust($sidenav-text-color, $lightness: -10%);
+    }
+
+    // &.open {
+    //   background-color: $sidenav-link-active-background;
+    //   color: color.adjust($sidenav-text-color, $lightness: -10%);
+    // }
+  }
+
+  > a {
+    &.active-link {
+      background-color: $sidenav-link-active-background;
+      color: $sidenav-link-active-color;
+      font-weight: 500;
+    }
+  }
+
+  > .sidenav-item.submenu-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+
+    .submenu-arrow {
+      font-size: 0.8em;
+      margin-left: 8px;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    &.open {
+      background-color: $sidenav-link-hover-background;
+      color: color.adjust($sidenav-text-color, $lightness: -20%)
+    }
+  }
+
+  .submenu-content {
+    a {
+      display: block;
+      padding: $sidenav-link-padding;
+      text-decoration: none;
+      color: $sidenav-text-color;
+      font-size: 1rem;
+      transition: background-color 0.2s ease-out, color 0.2s ease-out;
+
+      &:hover {
+      background-color: $sidenav-link-hover-background;
+      color: color.adjust($sidenav-text-color, $lightness: -10%);
+      }
+
+      &.active-link {
+      background-color: $sidenav-link-active-background;
+      color: $sidenav-link-active-color;
+      font-weight: 500;
+      }
+    }
+  }
+}
