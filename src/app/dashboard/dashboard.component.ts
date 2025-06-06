@@ -8,7 +8,6 @@ import { SidenavComponent } from '../shared/sidenav/sidenav.component';
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
   imports: [CommonModule, NavbarComponent, SidenavComponent], // CommonModule para *ngIf (se usar)
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -21,13 +20,14 @@ export class DashboardComponent implements OnInit {
   constructor(private authService: AuthService, private router: Router) { }
 
   ngOnInit(): void {
+    console.log('DashboardComponent ngOnInit. Current auth status:', this.authService.isLoggedIn_sync());
     // Inscreve-se no observable do nome do usuário para atualizações em tempo real
     this.userSubscription = this.authService.userName$.subscribe(name => {
       this.userName = name;
       // Se o nome do usuário for nulo (após um logout, por exemplo), redireciona para o login
-      if (!this.userName) {
-        this.router.navigate(['/login']);
-      }
+      // if (!this.userName) {
+      //   this.router.navigate(['/login']);
+      // }
     });
   }
 
@@ -41,6 +41,12 @@ export class DashboardComponent implements OnInit {
     console.log('DashboardComponent: Sidenav close requested.');
   }
 
+
+  ngOnDestroy(): void { // ✅ ADICIONADO: Boa prática para desinscrever
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
+  }
   // logout(): void {
   //   this.authService.logout();
   //   this.router.navigate(['/login']); // Redireciona para a tela de login após o logout

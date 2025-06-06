@@ -5,7 +5,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router'; // Para os links
 @Component({
   selector: 'app-sidenav',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLinkActive],
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.scss']
 })
