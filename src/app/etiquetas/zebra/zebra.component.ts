@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router'; // Importe RouterLink
 import { CommonModule } from '@angular/common'; // Importe CommonModule para *ngIf
-import { AuthService } from '../../auth.service';
+import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs'; // Para gerenciar a inscrição ao observable
 import { NavbarComponent } from '../../shared/navbar/navbar.component';
 import { SidenavComponent } from '../../shared/sidenav/sidenav.component';
@@ -26,9 +26,6 @@ export class ZebraComponent implements OnInit {
     console.log('ZebraComponent ngOnInit. Current auth status (isLoggedIn):', this.authService.isLoggedIn_sync());
     this.userSubscription = this.authService.userName$.subscribe(name => {
       this.userName = name;
-      // if (!this.userName) {
-      //   this.router.navigate(['/login']);
-      // }
     });
   }
 
@@ -40,7 +37,7 @@ export class ZebraComponent implements OnInit {
     this.isSidenavVisible = false;
   }
 
-  ngOnDestroy(): void { // ✅ ADICIONADO: Boa prática para desinscrever
+  ngOnDestroy(): void {
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }

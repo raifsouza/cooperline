@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NgForm, FormsModule } from '@angular/forms';
-import { AuthService } from '../auth.service'; // Importe o serviço
+import { AuthService } from '../services/auth.service';// Importe o serviço
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
-  matricula = '';
+  nome = '';
   password = '';
   errorMessage: string | null = null; // Para exibir mensagens de erro
 
@@ -45,9 +45,9 @@ export class LoginComponent implements OnInit {
     }
 
   onSubmit() {
-  if (this.matricula && this.password) { // Assuming username is actually matricula
+  if (this.nome && this.password) { // Assumindo que username é nome
     this.errorMessage = null;
-    this.authService.login(this.matricula, this.password).subscribe( // Pass matricula and password
+    this.authService.login(this.nome, this.password).subscribe( // Passar nome e senha
       response => {
         console.log('Login bem-sucedido!', response);
         this.router.navigate(['/dashboard']);

@@ -18,7 +18,7 @@
       <div class="submenu-content" *ngIf="isSidenavSubmenuOpen">
         <a href="/etiquetas/zebra" routerLinkActive="active-link" (click)="onLinkClick()">Zebra</a>
       </div>
-      <a href="/painel-administrativo" routerLinkActive="active-link" (click)="onLinkClick()">Painel administrativo</a>
+      <a *ngIf="userAccessLevel === 1" href="/painel-administrativo" routerLinkActive="active-link" (click)="onLinkClick()">Painel administrativo</a>
       </nav>
   </aside>
 
