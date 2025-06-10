@@ -1,14 +1,14 @@
 import { Component, OnInit, OnDestroy, EventEmitter ,Output } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../auth.service'; // Ajuste o caminho do AuthService
+import { AuthService } from '../../services/auth.service';
 import { Subscription } from 'rxjs';
 import { SidenavComponent } from '../sidenav/sidenav.component';
 
 @Component({
-  selector: 'app-navbar', // O seletor que você usará para incluir a navbar
+  selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule], //removi só pra parar de dar erro por não ter mais o botão de "MeuApp"
+  imports: [CommonModule], // removi só pra parar de dar erro por não ter mais o botão de "MeuApp"
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss']
 })

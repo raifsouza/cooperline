@@ -8,18 +8,18 @@
         <div class="card-body">
           <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
             <div class="mb-3">
-              <label for="username" class="form-label">Matricula: </label>
+              <label for="username" class="form-label">Nome: </label>
               <input
                 type="text"
                 class="form-control"
                 id="username"
                 name="username"
-                [(ngModel)]="matricula"
+                [(ngModel)]="nome"
                 required
                 #usernameInput="ngModel"
               />
               <div *ngIf="usernameInput.invalid && (usernameInput.dirty || usernameInput.touched)" class="text-danger">
-                Matricula é obrigatoria
+                Nome é obrigatório.
               </div>
             </div>
             <div class="mb-3">

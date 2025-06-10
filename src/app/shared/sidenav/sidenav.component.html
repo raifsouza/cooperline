@@ -10,14 +10,15 @@
     </div>
 
     <nav class="sidenav-nav">
-      <a routerLink="/dashboard" routerLinkActive="active-link" (click)="onLinkClick()">Dashboard</a>
+      <a href="/dashboard" routerLinkActive="active-link" (click)="onLinkClick()">Dashboard</a>
       <div class="sidenav-item submenu-trigger" (click)="toggleSidenavSubmenu()" [class.open]="isSidenavSubmenuOpen">
-        <span>Etiqueta</span>
+        <span>Etiquetas</span>
         <span class="submenu-arrow">{{ isSidenavSubmenuOpen ? '-' : '+' }}</span>
       </div>
       <div class="submenu-content" *ngIf="isSidenavSubmenuOpen">
-        <a routerLink="/etiqueta/zebra" routerLinkActive="active-link" (click)="onLinkClick()">Zebra</a>
+        <a href="/etiquetas/zebra" routerLinkActive="active-link" (click)="onLinkClick()">Zebra</a>
       </div>
+      <a *ngIf="userAccessLevel === 1" href="/painel-administrativo" routerLinkActive="active-link" (click)="onLinkClick()">Painel administrativo</a>
       </nav>
   </aside>
 

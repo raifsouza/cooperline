@@ -1,0 +1,75 @@
+<app-navbar (toggleSidenavRequest)="handleToggleSidenavRequest()"></app-navbar>
+<app-sidenav [isOpen]="isSidenavVisible" (closeSidenavRequest)="handleCloseSidenavRequest()"></app-sidenav>
+
+<main class="admin-main-content">
+  <div class="admin-container">
+    <h2>Painel Administrativo</h2>
+    <p>Gerencie os usuários e permissões do sistema.</p>
+
+    <div class="panel-content">
+      <div class="form-section">
+        <h3>{{ isEditMode ? 'Editar Usuário' : 'Cadastrar Novo Usuário' }}</h3>
+
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+
+          <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input id="nome" type="text" formControlName="nome" placeholder="Nome do usuário">
+            </div>
+
+          <div class="form-group">
+            <label for="senha">Senha:</label>
+            <input id="senha" type="password" formControlName="senha" [placeholder]="isEditMode ? '(Deixe em branco para não alterar)' : 'Defina uma senha'">
+            <small *ngIf="isEditMode">Deixe em branco para manter a senha atual.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="nivel_acesso">Nível de Acesso:</label>
+            <select id="nivel_acesso" formControlName="nivel_acesso">
+              <option *ngFor="let level of formAccessLevels" [value]="level.id">{{ level.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" [disabled]="userForm.invalid">{{ isEditMode ? 'Salvar Alterações' : 'Cadastrar Usuário' }}</button>
+
+            <button type="button" (click)="resetFormAndReload()" *ngIf="isEditMode">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="list-section">
+        <h3>Usuários Cadastrados</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Nível</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="users$ | async as users">
+
+              <tr *ngFor="let user of users">
+                <td>{{ user.id }}</td>
+                <td>{{ user.nome }}</td>
+                <td>{{ getAccessLevelName(user.nivel_acesso) }}</td>
+                <td class="actions">
+                  <button class="btn-edit" (click)="editUser(user)" [disabled]="user.nivel_acesso === 1">✏️ Editar</button>
+                  <!-- <button class="btn-delete" (click)="deleteUser(user.id!)" *ngIf="user.nivel_acesso !== 1">🗑️ Deletar</button> -->
+                </td>
+              </tr>
+
+              <tr *ngIf="users.length === 0">
+                <td colspan="4" style="text-align: center;">Nenhum usuário cadastrado.</td>
+              </tr>
+
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>

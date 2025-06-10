@@ -2,13 +2,16 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component'; // Importe seu componente de login
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { authGuard } from './auth.guard';
+import { AdminGuard } from './admin.guard';
 import { ZebraComponent } from './etiquetas/zebra/zebra.component';
+import { PainelAdministrativoComponent } from './painel-administrativo/painel-administrativo.component';
 
 export const routes: Routes = [
   // Rota para a tela de login
   { path: 'login', component: LoginComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'etiquetas/zebra', component: ZebraComponent, canActivate: [authGuard] },
+  { path: 'painel-administrativo', component: PainelAdministrativoComponent, canActivate: [authGuard, AdminGuard] },
   // Rota padrão: redireciona para a tela de login quando a URL estiver vazia
   { path: '', redirectTo: '/login', pathMatch: 'full' },
 

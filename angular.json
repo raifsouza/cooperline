@@ -37,7 +37,7 @@
               "src/styles.scss"
             ],
             "scripts": [],
-            "baseHref": "cooperline",
+            "baseHref": "/",
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {
