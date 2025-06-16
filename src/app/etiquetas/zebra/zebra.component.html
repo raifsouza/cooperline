@@ -1,6 +1,57 @@
 <app-navbar (toggleSidenavRequest)="handleToggleSidenavRequest()"></app-navbar>
 <app-sidenav [isOpen]="isSidenavVisible" (closeSidenavRequest)="handleCloseSidenavRequest()"></app-sidenav>
-<div class="container-zebra">
-  <h2>Sua area de impressão Zebra</h2>
-  <p>Area restrita</p>
+<div class="label-editor-container">
+  <h1>Editor de Etiquetas ZPL</h1>
+
+  <div class="controls">
+    <div class="input-group">
+      <label for="zpl-upload">Carregar Arquivo (Qualquer Texto):</label>
+      <input type="file" id="zpl-upload" (change)="onFileSelected($event)">
+    </div>
+
+    <div class="input-group">
+      <label for="zpl-content">Conteúdo ZPL:</label>
+      <textarea id="zpl-content" [(ngModel)]="zplContent" rows="15" placeholder="Insira seu código ZPL aqui..."></textarea>
+    </div>
+
+    <div class="parameters">
+      <div class="param-group">
+        <label for="dpmm">DPI (Pontos por mm):</label>
+        <select id="dpmm" [(ngModel)]="dpmm">
+          <option [value]="8">203 dpi (8 dpmm)</option>
+          <option [value]="12">300 dpi (12 dpmm)</option>
+          <option [value]="24">600 dpi (24 dpmm)</option>
+        </select>
+      </div>
+      <div class="param-group">
+        <label for="width">Largura (polegadas):</label>
+        <input type="number" id="width" [(ngModel)]="width" min="0.1" step="0.1">
+      </div>
+      <div class="param-group">
+        <label for="height">Altura (polegadas):</label>
+        <input type="number" id="height" [(ngModel)]="height" min="0.1" step="0.1">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button (click)="renderLabel()" [disabled]="isLoading || !zplContent">
+        {{ isLoading ? 'Renderizando...' : 'Renderizar Etiqueta' }}
+      </button>
+      <button (click)="downloadLabel()" [disabled]="!renderedLabelUrl">Baixar Etiqueta</button>
+      <button (click)="printLabel()" [disabled]="!renderedLabelUrl">Imprimir Etiqueta</button>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">
+      <p>{{ errorMessage }}</p>
+    </div>
+  </div>
+
+  <div class="label-preview">
+    <h2>Pré-visualização da Etiqueta:</h2>
+    <div *ngIf="isLoading" class="loading-spinner">Carregando...</div>
+    <div *ngIf="!isLoading && !renderedLabelUrl && !errorMessage" class="no-preview">
+      Nenhuma etiqueta para pré-visualizar.
+    </div>
+    <img *ngIf="renderedLabelUrl && !isLoading" [src]="renderedLabelUrl" alt="Etiqueta ZPL Renderizada">
+  </div>
 </div>
