@@ -8,6 +8,8 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   font-family: Arial, sans-serif;
+  position: relative;
+  z-index: 1;
 }
 
 h1, h2 {
@@ -87,12 +89,26 @@ h1, h2 {
 .actions button {
   padding: 10px 20px;
   font-size: 1rem;
-  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+
+  &.primary-print-button { // Novo estilo para o botão principal de imprimir
+    background-color: #007bff; /* Azul primário */
+    &:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+  }
+
+  // Estilos para outros botões (Renderizar, Baixar)
+  &:not(.primary-print-button) {
+    background-color: #6c757d; // Cor cinza para botões secundários
+    &:hover:not(:disabled) {
+      background-color: #5a6268;
+    }
+  }
 }
 
 .actions button:disabled {
@@ -100,9 +116,6 @@ h1, h2 {
   cursor: not-allowed;
 }
 
-.actions button:hover:not(:disabled) {
-  background-color: #0056b3;
-}
 
 .error-message {
   color: #dc3545;
@@ -138,4 +151,164 @@ h1, h2 {
 .loading-spinner, .no-preview {
   color: #888;
   font-style: italic;
+}
+
+/* --- ESTILOS DO POP-UP DE IMPRESSÃO --- */
+.print-options-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.print-options-popup {
+  background-color: #fff;
+  padding: 25px; /* Reduzir padding para tornar menor */
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  max-width: 450px; /* Reduzir largura máxima */
+  width: 90%;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Reduzir espaçamento entre elementos */
+
+  h2 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.4rem; /* Um pouco menor para o título */
+  }
+
+  .print-option-group {
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #fcfcfc;
+    display: flex; /* Adicionado para alinhar conteúdo */
+    flex-direction: column; /* Colocar itens em coluna */
+    gap: 10px; /* Espaçamento entre itens dentro do grupo */
+
+
+    h3 {
+      color: #007bff;
+      margin-top: 0;
+      margin-bottom: 5px; /* Reduzir margem inferior */
+      font-size: 1.15rem; /* Título um pouco menor */
+    }
+    p {
+      font-size: 0.85em; /* Fonte um pouco menor */
+      color: #666;
+      margin-bottom: 10px; /* Reduzir margem inferior */
+    }
+
+    button {
+      padding: 10px 15px; /* Padding menor */
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.95rem; /* Fonte um pouco menor */
+      transition: background-color 0.3s ease;
+      
+      &:not(:disabled) {
+        background-color: #28a745;
+        color: white;
+        &:hover {
+          background-color: #218838;
+        }
+      }
+      &:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+    }
+
+    select {
+        width: calc(100% - 16px); /* Ajusta a largura com padding/border menor */
+        padding: 8px;
+        margin-bottom: 5px; /* Reduzir margem inferior */
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.95rem; /* Fonte um pouco menor */
+    }
+
+    // Estilos específicos para os botões e select da seção Zebra
+    &.zebra-printer-options {
+        .actions-zebra {
+            display: flex;
+            flex-direction: column; // Botões em coluna
+            gap: 10px; // Espaçamento entre os botões
+            margin-top: 5px; // Distanciar um pouco do select/status
+        }
+        button {
+            width: 100%; // Botões ocupam 100% da largura do grupo
+        }
+    }
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 10px 0; /* Margem menor */
+  }
+
+  .loading-spinner {
+    font-style: italic;
+    color: #007bff;
+    margin-top: 5px; /* Margem menor */
+  }
+
+  .close-popup-button {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+    &:hover {
+      background-color: #5a6268;
+    }
+  }
+}
+
+/* Responsividade Básica (seção já existente, apenas para garantir) */
+@media (max-width: 768px) {
+  .label-editor-container {
+    padding: 15px;
+    margin: 10px;
+  }
+
+  .input-group input[type="file"],
+  .input-group textarea,
+  .param-group input[type="number"],
+  .param-group select {
+    width: 100%; /* Remove calc() para telas menores */
+  }
+
+  .parameters {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 10px;
+    button {
+      width: 100%;
+    }
+  }
+
+  .print-options-popup {
+    padding: 15px; /* Ainda menor em telas muito pequenas */
+    max-width: 95%; /* Ocupa mais espaço em telas pequenas */
+  }
 }

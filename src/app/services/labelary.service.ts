@@ -7,8 +7,26 @@ import { Observable } from 'rxjs';
 })
 export class LabelaryService {
   private readonly BASE_URL = 'https://api.labelary.com/v1/printers';
+  private readonly GRAPHICS_URL = 'https://api.labelary.com/v1/graphics';
 
   constructor(private http: HttpClient) { }
+
+  /**
+   * Converte uma imagem (File ou Blob) em uma string ZPL ^GFA.
+   * @param imageFile O objeto File ou Blob da imagem.
+   * @returns Um Observable de string, representando o ZPL ^GFA gerado.
+   */
+  convertImageToZPL(imageFile: File | Blob): Observable<string> {
+    const formData = new FormData();
+    formData.append('file', imageFile); // 'file' é o nome do parâmetro esperado pela API
+
+    const headers = new HttpHeaders({
+      // 'Content-Type' é definido automaticamente pelo HttpClient para FormData
+      // 'Accept': 'application/zpl' // Opcional, mas boa prática para indicar que esperamos ZPL
+    });
+
+    return this.http.post(this.GRAPHICS_URL, formData, { headers, responseType: 'text' }); // Resposta é texto (ZPL)
+  }
 
   /**
    * Renders a ZPL string into an image.
@@ -27,11 +45,11 @@ export class LabelaryService {
     index: number = 0
   ): Observable<Blob> {
 
-    const url = `${this.BASE_URL}/${dpmm}/labels/${width}x${height}/${index}/`;
+    const url = `${this.BASE_URL}/${dpmm}dpmm/labels/${width}x${height}/${index}/`;
 
     const headers = new HttpHeaders({
       // Mude esta linha:
-      'Content-Type': 'text/plain' // <-- ESSENCIAL: O Labelary espera texto puro aqui.
+      'Content-Type': 'application/x-www-form-urlencoded' // <-- ESSENCIAL: O Labelary espera texto puro aqui.
     });
 
     // O corpo da requisição (zpl) está correto sendo a string pura.

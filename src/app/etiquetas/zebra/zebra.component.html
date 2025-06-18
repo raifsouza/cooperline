@@ -1,12 +1,14 @@
 <app-navbar (toggleSidenavRequest)="handleToggleSidenavRequest()"></app-navbar>
 <app-sidenav [isOpen]="isSidenavVisible" (closeSidenavRequest)="handleCloseSidenavRequest()"></app-sidenav>
+
 <div class="label-editor-container">
-  <h1>Editor de Etiquetas ZPL</h1>
+  <h1>Editor e Impressor de Etiquetas Zebra</h1>
 
   <div class="controls">
     <div class="input-group">
-      <label for="zpl-upload">Carregar Arquivo (Qualquer Texto):</label>
-      <input type="file" id="zpl-upload" (change)="onFileSelected($event)">
+      <label for="zpl-upload">Carregar Arquivo ZPL (.txt ou .zpl):</label>
+      <input type="file" id="zpl-upload" (change)="onFileSelected($event)" accept=".txt,.zpl">
+      <small>Carrega um arquivo de texto contendo ZPL.</small>
     </div>
 
     <div class="input-group">
@@ -38,7 +40,9 @@
         {{ isLoading ? 'Renderizando...' : 'Renderizar Etiqueta' }}
       </button>
       <button (click)="downloadLabel()" [disabled]="!renderedLabelUrl">Baixar Etiqueta</button>
-      <button (click)="printLabel()" [disabled]="!renderedLabelUrl">Imprimir Etiqueta</button>
+      <button class="primary-print-button" (click)="openPrintOptionsPopup()" [disabled]="!renderedLabelUrl">
+        Imprimir Etiqueta
+      </button>
     </div>
 
     <div *ngIf="errorMessage" class="error-message">
@@ -53,5 +57,47 @@
       Nenhuma etiqueta para pré-visualizar.
     </div>
     <img *ngIf="renderedLabelUrl && !isLoading" [src]="renderedLabelUrl" alt="Etiqueta ZPL Renderizada">
+  </div>
+</div>
+
+<div class="print-options-popup-overlay" *ngIf="showPrintOptionsPopup">
+  <div class="print-options-popup">
+    <h2>Escolha a Opção de Impressão</h2>
+
+    <div class="print-option-group">
+      <h3>Impressora Padrão (Sistema Operacional)</h3>
+      <p>Imprime a pré-visualização renderizada (imagem/PDF) usando o driver de impressão padrão do seu sistema. Isso abre a caixa de diálogo de impressão do navegador.</p>
+      <button (click)="printRenderedImage()" [disabled]="!renderedLabelUrl">
+        Imprimir via Driver Padrão
+      </button>
+    </div>
+
+    <hr> <div class="print-option-group">
+      <h3>Impressora Zebra (ZPL Direto)</h3>
+      <p>Envie o ZPL diretamente para uma impressora Zebra conectada localmente via Zebra Browser Print.</p>
+      <p>Status da Conexão: {{ printerStatus }}</p>
+      <div *ngIf="isConnectingToPrinter" class="loading-spinner">Conectando à impressora...</div>
+
+      <div *ngIf="!isConnectingToPrinter">
+        <div *ngIf="printerList.length > 0">
+          <label for="zebra-printer-select">Selecionar Impressora Zebra:</label>
+          <select id="zebra-printer-select" [(ngModel)]="selectedPrinter">
+            <option [ngValue]="null" disabled>-- Selecione uma impressora --</option>
+            <option *ngFor="let printer of printerList" [ngValue]="printer">{{ printer.name }}</option>
+          </select>
+          <button (click)="setupBrowserPrint()">Atualizar Lista de Impressoras</button>
+        </div>
+        <div *ngIf="printerList.length === 0">
+            <p>Nenhuma impressora Zebra encontrada. Certifique-se de que o Zebra Browser Print está rodando e as impressoras estão conectadas.</p>
+            <button (click)="setupBrowserPrint()">Tentar Conectar Novamente</button>
+        </div>
+      </div>
+
+      <button (click)="printZebraDirectly()" [disabled]="!selectedPrinter || !zplContent">
+        Imprimir ZPL na Impressora Zebra
+      </button>
+    </div>
+
+    <button class="close-popup-button" (click)="closePrintOptionsPopup()">Fechar</button>
   </div>
 </div>
