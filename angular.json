@@ -36,7 +36,9 @@
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "src/styles.scss"
             ],
-            "scripts": [],
+            "scripts": [
+              "src/assets/zebra-sdk/BrowserPrint-3.1.250.min.js"
+            ],
             "baseHref": "/",
             "server": "src/main.server.ts",
             "outputMode": "server",
@@ -102,7 +104,9 @@
               "@angular/material/prebuilt-themes/azure-blue.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "src/assets/zebra-sdk/BrowserPrint-3.1.250.min.js"
+            ]
           }
         }
       }

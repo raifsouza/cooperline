@@ -19,7 +19,7 @@ export class ZebraComponent implements OnInit, OnDestroy {
   zplContent: string = '^XA^FO50,50^A0N36,36^FDHello, Labelary!^FS^XZ'; // Default ZPL
   dpmm: number = 8;
   width: number = 4;
-  height: number = 2;
+  height: number = 6;
   renderedLabelUrl: SafeUrl | null = null;
   isLoading: boolean = false;
   errorMessage: string | null = null;
