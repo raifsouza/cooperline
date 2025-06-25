@@ -72,25 +72,35 @@
       </button>
     </div>
 
-    <hr> <div class="print-option-group">
+    <hr>
+    <div class="print-option-group">
       <h3>Impressora Zebra (ZPL Direto)</h3>
       <p>Envie o ZPL diretamente para uma impressora Zebra conectada localmente via Zebra Browser Print.</p>
-      <p>Status da Conexão: {{ printerStatus }}</p>
-      <div *ngIf="isConnectingToPrinter" class="loading-spinner">Conectando à impressora...</div>
 
-      <div *ngIf="!isConnectingToPrinter">
-        <div *ngIf="printerList.length > 0">
-          <label for="zebra-printer-select">Selecionar Impressora Zebra:</label>
-          <select id="zebra-printer-select" [(ngModel)]="selectedPrinter">
-            <option [ngValue]="null" disabled>-- Selecione uma impressora --</option>
-            <option *ngFor="let printer of printerList" [ngValue]="printer">{{ printer.name }}</option>
-          </select>
-          <button (click)="setupBrowserPrint()">Atualizar Lista de Impressoras</button>
-        </div>
-        <div *ngIf="printerList.length === 0">
-            <p>Nenhuma impressora Zebra encontrada. Certifique-se de que o Zebra Browser Print está rodando e as impressoras estão conectadas.</p>
-            <button (click)="setupBrowserPrint()">Tentar Conectar Novamente</button>
-        </div>
+      <div *ngIf="isConnectingToPrinter && !selectedPrinter" class="loading-spinner">
+        Conectando à impressora...
+        <p>{{ printerStatus }}</p>
+      </div>
+
+      <div *ngIf="selectedPrinter">
+        <p>Impressora Conectada: <strong>{{ selectedPrinter.name }}</strong></p>
+        <!-- <label for="zebra-printer-select">Selecionar Impressora Zebra:</label>
+        <select id="zebra-printer-select" [(ngModel)]="selectedPrinter">
+          <option [ngValue]="null" disabled>-- Selecione uma impressora --</option>
+          <option *ngFor="let printer of printerList" [ngValue]="printer">{{ printer.name }}</option>
+        </select>
+        <button (click)="setupBrowserPrint()">Atualizar Lista de Impressoras</button> -->
+      </div>
+
+      <div *ngIf="!isConnectingToPrinter && !selectedPrinter">
+          <p>Status da Conexão: {{ printerStatus }}</p>
+          <p>Nenhuma impressora Zebra encontrada. Certifique-se de que o Zebra Browser Print está rodando e as impressoras estão conectadas.</p>
+          <button (click)="setupBrowserPrint()">Tentar Conectar Novamente</button>
+      </div>
+
+      <div class="param-group">
+        <label for="copies">Quantidade de Cópias:</label>
+        <input type="number" id="copies" [(ngModel)]="numberOfCopies" min="1" step="1">
       </div>
 
       <button (click)="printZebraDirectly()" [disabled]="!selectedPrinter || !zplContent">
