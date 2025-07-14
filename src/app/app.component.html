@@ -1,1 +1,3 @@
+  <app-navbar (toggleSidenavRequest)="handleToggleSidenavRequest()"></app-navbar>
+  <app-sidenav [isOpen]="isSidenavVisible" (closeSidenavRequest)="handleCloseSidenavRequest()"></app-sidenav>
   <router-outlet></router-outlet>

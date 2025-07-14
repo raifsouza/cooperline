@@ -3,12 +3,10 @@ import { Router, RouterLink } from '@angular/router'; // Importe RouterLink
 import { CommonModule } from '@angular/common'; // Importe CommonModule para *ngIf
 import { AuthService } from '../services/auth.service';
 import { Subscription } from 'rxjs'; // Para gerenciar a inscrição ao observable
-import { NavbarComponent } from '../shared/navbar/navbar.component';
-import { SidenavComponent } from '../shared/sidenav/sidenav.component';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, NavbarComponent, SidenavComponent], // CommonModule para *ngIf (se usar)
+  imports: [CommonModule,], // CommonModule para *ngIf (se usar)
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })

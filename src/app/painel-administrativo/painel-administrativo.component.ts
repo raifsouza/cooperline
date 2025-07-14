@@ -3,11 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { NgForm, FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
-
 import { AuthService } from '../services/auth.service';
 import { User, UserService } from '../services/user.service';
-import { NavbarComponent } from '../shared/navbar/navbar.component';
-import { SidenavComponent } from '../shared/sidenav/sidenav.component';
+
 
 
 @Component({
@@ -16,8 +14,6 @@ import { SidenavComponent } from '../shared/sidenav/sidenav.component';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    NavbarComponent,
-    SidenavComponent,
   ],
   templateUrl: './painel-administrativo.component.html',
   styleUrl: './painel-administrativo.component.scss'

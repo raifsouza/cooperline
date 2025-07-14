@@ -1,0 +1,83 @@
+.excel-upload-container {
+  padding: 20px;
+  background-color: #f0f4f8;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 30px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+
+  h2 {
+    color: #333;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+
+  .input-group {
+    margin-bottom: 20px;
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+    input[type="file"] {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+    }
+    small {
+      display: block;
+      margin-top: 5px;
+      color: #777;
+      font-size: 0.85em;
+    }
+  }
+
+  .upload-status {
+    margin-bottom: 20px;
+    p {
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #e6f7ff;
+      color: #3182ce;
+      border: 1px solid #90cdf4;
+      &.error-message {
+        background-color: #ffe6e6;
+        color: #e53e3e;
+        border-color: #feb2b2;
+      }
+    }
+    .loading-spinner {
+      text-align: center;
+      padding: 10px;
+      color: #666;
+    }
+  }
+
+  button {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover:not([disabled]) {
+      background-color: #45a049;
+    }
+
+    &[disabled] {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+  }
+}

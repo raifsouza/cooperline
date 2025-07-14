@@ -4,8 +4,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { LabelaryService } from '../../services/labelary.service';
-import { NavbarComponent } from '../../shared/navbar/navbar.component';
-import { SidenavComponent } from '../../shared/sidenav/sidenav.component';
 import { PrintHistoryApiService } from '../../services/print-history-api.service';
 import { PrintHistoryEntry } from '../../models/print-history.model';
 import { HttpClientModule } from '@angular/common/http'; // Certifique-se de importar se for standalone
@@ -23,7 +21,7 @@ interface AuthUser {
 @Component({
   selector: 'app-zebra',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, SidenavComponent, HttpClientModule], // HttpClientModule pode ser necessário aqui se standalone
+  imports: [CommonModule, FormsModule, HttpClientModule], // HttpClientModule pode ser necessário aqui se standalone
   templateUrl: './zebra.component.html',
   styleUrl: './zebra.component.scss'
 })

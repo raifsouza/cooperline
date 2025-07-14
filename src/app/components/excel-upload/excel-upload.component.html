@@ -1,0 +1,19 @@
+<div class="excel-upload-container">
+  <h2>Carregar Planilha de Produtos</h2>
+
+  <div class="input-group">
+    <label for="excel-file-upload">Selecione o arquivo Excel (.xlsx):</label>
+    <input type="file" id="excel-file-upload" (change)="onFileSelected($event)" accept=".xlsx">
+    <small>Apenas arquivos .xlsx são suportados.</small>
+  </div>
+
+  <div class="upload-status">
+    <p *ngIf="uploadStatus">{{ uploadStatus }}</p>
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+    <div *ngIf="isLoading" class="loading-spinner">Carregando...</div>
+  </div>
+
+  <button (click)="onUpload()" [disabled]="!selectedFile || isLoading">
+    {{ isLoading ? 'Processando...' : 'Carregar Planilha' }}
+  </button>
+</div>

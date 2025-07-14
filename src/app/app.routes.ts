@@ -5,6 +5,7 @@ import { authGuard } from './auth.guard';
 import { AdminGuard } from './admin.guard';
 import { ZebraComponent } from './etiquetas/zebra/zebra.component';
 import { PainelAdministrativoComponent } from './painel-administrativo/painel-administrativo.component';
+import { ExcelUploadComponent } from './components/excel-upload/excel-upload.component';
 
 export const routes: Routes = [
   // Rota para a tela de login
@@ -12,6 +13,7 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'etiquetas/zebra', component: ZebraComponent, canActivate: [authGuard] },
   { path: 'painel-administrativo', component: PainelAdministrativoComponent, canActivate: [authGuard, AdminGuard] },
+  { path: 'upload', component: ExcelUploadComponent, canActivate: [authGuard, AdminGuard] },
   // Rota padrão: redireciona para a tela de login quando a URL estiver vazia
   { path: '', redirectTo: '/login', pathMatch: 'full' },
 
