@@ -5,23 +5,24 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { LabelaryService } from '../../services/labelary.service';
 import { PrintHistoryApiService } from '../../services/print-history-api.service';
+import { LabelManagementService } from '../../services/label-management.service'; // Importar o novo serviço
 import { PrintHistoryEntry } from '../../models/print-history.model';
-import { HttpClientModule } from '@angular/common/http'; // Certifique-se de importar se for standalone
+import { LabelEntry } from '../../models/label-entry.model'; // Certifique-se de ter este modelo
+import { HttpClientModule } from '@angular/common/http';
 
 declare var BrowserPrint: any;
 
-// Interface para o objeto de usuário armazenado no localStorage, com base na imagem
 interface AuthUser {
   id: string;
   nome: string;
   matricula: string;
-  email: string; // Adicione outras propriedades se houver
+  email: string;
 }
 
 @Component({
   selector: 'app-zebra',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule], // HttpClientModule pode ser necessário aqui se standalone
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './zebra.component.html',
   styleUrl: './zebra.component.scss'
 })
@@ -45,21 +46,28 @@ export class ZebraComponent implements OnInit, OnDestroy {
 
   showPrintOptionsPopup: boolean = false;
 
-  // Propriedades para armazenar os dados do usuário do localStorage
   loggedInUserName: string | null = null;
   loggedInUserId: string | null = null;
   loggedInUserMatricula: string | null = null;
 
+  // NOVAS PROPRIEDADES para etiquetas do banco de dados
+  dbLabels: LabelEntry[] = [];
+  selectedDbLabelId: number | null = null; // Usará o ID da etiqueta selecionada
+  isLoadingDbLabels: boolean = false;
+  dbLabelsErrorMessage: string | null = null;
+
   constructor(
     private labelaryService: LabelaryService,
     private sanitizer: DomSanitizer,
-    private printHistoryApiService: PrintHistoryApiService
+    private printHistoryApiService: PrintHistoryApiService,
+    private labelManagementService: LabelManagementService // Injete o novo serviço
   ) { }
 
   ngOnInit(): void {
-    this.renderLabel();
+    this.loadDbLabels(); // Carrega as etiquetas do banco ao iniciar
+    this.renderLabel(); // Renderiza a etiqueta padrão inicial
     this.setupBrowserPrint();
-    this.loadUserDataFromLocalStorage(); // Carrega os dados do usuário ao iniciar
+    this.loadUserDataFromLocalStorage();
   }
 
   ngOnDestroy(): void {
@@ -68,7 +76,6 @@ export class ZebraComponent implements OnInit, OnDestroy {
     }
   }
 
-  // NOVO MÉTODO: Para carregar os dados do usuário do localStorage
   private loadUserDataFromLocalStorage(): void {
     const authDataString = localStorage.getItem('CapacitorStorage.inspector_auth');
     if (authDataString) {
@@ -85,12 +92,10 @@ export class ZebraComponent implements OnInit, OnDestroy {
         console.error('Erro ao parsear dados de autenticação do localStorage:', e);
       }
     } else {
-      // Se 'CapacitorStorage.inspector_auth' não existe, tenta 'userName' diretamente
       this.loggedInUserName = localStorage.getItem('userName');
       console.log('UserName carregado diretamente do localStorage:', this.loggedInUserName);
     }
 
-    // Fallback caso não encontre nada ou para desenvolvimento
     if (!this.loggedInUserId && !this.loggedInUserName) {
       this.loggedInUserId = 'desconhecido';
       this.loggedInUserName = 'Usuário Desconhecido';
@@ -99,19 +104,40 @@ export class ZebraComponent implements OnInit, OnDestroy {
     }
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-      const reader = new FileReader();
+  // NOVO MÉTODO: Carrega etiquetas do banco de dados
+  loadDbLabels(): void {
+    this.isLoadingDbLabels = true;
+    this.dbLabelsErrorMessage = null;
+    this.dbLabels = []; // Limpa a lista antes de carregar
+    this.labelManagementService.getAllLabels().subscribe({
+      next: (labels: LabelEntry[]) => {
+        this.dbLabels = labels;
+        this.isLoadingDbLabels = false;
+        // Opcional: pré-selecionar a primeira etiqueta se houver
+        // if (this.dbLabels.length > 0 && this.selectedDbLabelId === null) {
+        //   this.selectedDbLabelId = this.dbLabels[0].id;
+        //   this.onDbLabelSelected();
+        // }
+      },
+      error: (error) => {
+        console.error('Erro ao carregar etiquetas do banco de dados:', error);
+        this.dbLabelsErrorMessage = 'Falha ao carregar etiquetas do banco de dados. Tente novamente.';
+        this.isLoadingDbLabels = false;
+        this.dbLabels = []; // Garante que a lista esteja vazia em caso de erro
+      }
+    });
+  }
 
-      reader.onload = () => {
-        if (reader.result) {
-          this.zplContent = reader.result.toString();
-          this.renderLabel();
-        }
-      };
-      reader.readAsText(file);
+  // NOVO MÉTODO: Lida com a seleção de uma etiqueta do banco
+  onDbLabelSelected(): void {
+    const selectedLabel = this.dbLabels.find(label => label.id === this.selectedDbLabelId);
+    if (selectedLabel) {
+      this.zplContent = selectedLabel.original_content; // Define o conteúdo ZPL
+      this.renderLabel(); // Renderiza a etiqueta selecionada
+    } else {
+      this.zplContent = ''; // Limpa o ZPL se "Selecione uma etiqueta" for escolhido
+      this.renderedLabelUrl = null;
+      this.errorMessage = null; // Limpa mensagens de erro
     }
   }
 
@@ -123,6 +149,12 @@ export class ZebraComponent implements OnInit, OnDestroy {
     if (this.objectUrl) {
       URL.revokeObjectURL(this.objectUrl);
       this.objectUrl = null;
+    }
+
+    if (!this.zplContent) {
+      this.errorMessage = 'Nenhum conteúdo ZPL para renderizar. Selecione uma etiqueta ou insira ZPL manual.';
+      this.isLoading = false;
+      return;
     }
 
     this.labelaryService.renderLabel(this.zplContent, this.dpmm, this.width, this.height)
@@ -151,7 +183,9 @@ export class ZebraComponent implements OnInit, OnDestroy {
     if (this.renderedLabelUrl && this.objectUrl) {
       const a = document.createElement('a');
       a.href = this.objectUrl;
-      a.download = 'label.png';
+      // Use o nome da etiqueta do banco se estiver selecionada, senão um nome genérico
+      const selectedLabel = this.dbLabels.find(label => label.id === this.selectedDbLabelId);
+      a.download = selectedLabel ? `${selectedLabel.file_name}.png` : 'label.png';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -304,15 +338,15 @@ export class ZebraComponent implements OnInit, OnDestroy {
         console.log('ZPL enviado com sucesso para a impressora Zebra!', success);
         alert('Etiqueta enviada para a impressora Zebra com sucesso!');
 
-        // NOVO: Salvar no banco de dados via API após sucesso, usando dados do usuário
-        if (this.loggedInUserId) { // Só salva se tiver um ID de usuário
+        if (this.loggedInUserId) {
+          const selectedLabel = this.dbLabels.find(label => label.id === this.selectedDbLabelId);
           const historyEntry: PrintHistoryEntry = {
             userId: this.loggedInUserId,
-            userName: this.loggedInUserName || 'Nome não disponível', // Adicionar userName para salvar
+            userName: this.loggedInUserName || 'Nome não disponível',
             timestamp: new Date().toISOString(),
             printerName: this.selectedPrinter.name,
             copies: this.numberOfCopies,
-            // zplContent: this.zplContent // Opcional: se quiser salvar o ZPL completo no DB
+            labelName: selectedLabel ? selectedLabel.file_name : 'ZPL Manual'
           };
 
           this.printHistoryApiService.savePrintEntry(historyEntry).subscribe({

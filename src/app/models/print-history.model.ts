@@ -5,5 +5,6 @@ export interface PrintHistoryEntry {
   timestamp: string;
   printerName: string;
   copies: number;
+  labelName?: string;
   // zplContent?: string; // Manter opcional se necessário para o DB
 }

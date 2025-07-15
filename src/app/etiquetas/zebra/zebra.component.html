@@ -1,20 +1,29 @@
-<!-- <app-navbar (toggleSidenavRequest)="handleToggleSidenavRequest()"></app-navbar>
-<app-sidenav [isOpen]="isSidenavVisible" (closeSidenavRequest)="handleCloseSidenavRequest()"></app-sidenav> -->
-
 <div class="label-editor-container">
   <h1>Editor e Impressor de Etiquetas Zebra</h1>
 
   <div class="controls">
     <div class="input-group">
-      <label for="zpl-upload">Carregar Arquivo ZPL (.txt ou .zpl):</label>
-      <input type="file" id="zpl-upload" (change)="onFileSelected($event)" accept=".txt,.zpl">
-      <small>Carrega um arquivo de texto contendo ZPL.</small>
+      <label for="db-label-select">Carregar Etiqueta do Banco de Dados:</label>
+      <select id="db-label-select" [(ngModel)]="selectedDbLabelId" (change)="onDbLabelSelected()">
+        <option [ngValue]="null" disabled>-- Selecione uma etiqueta --</option>
+        <option *ngIf="isLoadingDbLabels" [ngValue]="null" disabled>Carregando etiquetas...</option>
+        <option *ngIf="!isLoadingDbLabels && dbLabels.length === 0" [ngValue]="null" disabled>Nenhuma etiqueta salva.</option>
+        <option *ngFor="let label of dbLabels" [ngValue]="label.id">{{ label.file_name }}</option>
+      </select>
+      <small *ngIf="!isLoadingDbLabels && dbLabels.length > 0">Selecione uma etiqueta para pré-visualizar e imprimir.</small>
+
+      <div class="db-load-status-container">
+        <small *ngIf="dbLabelsErrorMessage" class="error-message-inline">{{ dbLabelsErrorMessage }}</small>
+        <button class="refresh-button" (click)="loadDbLabels()" [disabled]="isLoadingDbLabels">
+          <i class="fas fa-sync-alt"></i> {{ isLoadingDbLabels ? 'Atualizando...' : 'Atualizar Lista' }}
+        </button>
+      </div>
     </div>
 
-    <div class="input-group">
+    <!-- <div class="input-group" >
       <label for="zpl-content">Conteúdo ZPL:</label>
       <textarea id="zpl-content" [(ngModel)]="zplContent" rows="15" placeholder="Insira seu código ZPL aqui..."></textarea>
-    </div>
+    </div> -->
 
     <div class="parameters">
       <div class="param-group">
@@ -84,12 +93,12 @@
 
       <div *ngIf="selectedPrinter">
         <p>Impressora Conectada: <strong>{{ selectedPrinter.name }}</strong></p>
-        <!-- <label for="zebra-printer-select">Selecionar Impressora Zebra:</label>
+        <label for="zebra-printer-select">Selecionar Outra Impressora Zebra:</label>
         <select id="zebra-printer-select" [(ngModel)]="selectedPrinter">
           <option [ngValue]="null" disabled>-- Selecione uma impressora --</option>
           <option *ngFor="let printer of printerList" [ngValue]="printer">{{ printer.name }}</option>
         </select>
-        <button (click)="setupBrowserPrint()">Atualizar Lista de Impressoras</button> -->
+        <button (click)="setupBrowserPrint()">Atualizar Lista de Impressoras</button>
       </div>
 
       <div *ngIf="!isConnectingToPrinter && !selectedPrinter">

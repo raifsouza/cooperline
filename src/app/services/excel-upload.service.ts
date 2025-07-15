@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 export class ExcelUploadService {
   // ATENÇÃO: Substitua este URL pelo endpoint real da sua API de upload!
   private uploadUrl = 'http://localhost:3000/api/upload-excel';
+  private prnApiUrl = 'http://localhost:3000/api/upload-prn'; 
 
   constructor(private http: HttpClient) { }
 
@@ -17,5 +18,11 @@ export class ExcelUploadService {
     formData.append('excelFile', file, file.name); // 'excelFile' é o nome do campo esperado no backend
 
     return this.http.post(this.uploadUrl, formData);
+  }
+
+  uploadPrnFile(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('prnFile', file, file.name); // 'prnFile' deve corresponder ao nome do campo no backend
+    return this.http.post(this.prnApiUrl, formData);
   }
 }
