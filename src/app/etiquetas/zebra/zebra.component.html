@@ -19,12 +19,24 @@
         </button>
       </div>
     </div>
+    
+    <div class="input-group">
+      <label for="product-select">Carregar informações da etiqueta:</label> <select id="product-select" [(ngModel)]="selectedProduct" (change)="onProductSelected()">
+        <option [ngValue]="null" disabled>-- Selecione um produto --</option>
+        <option *ngIf="isLoadingProducts" [ngValue]="null" disabled>Carregando produtos...</option>
+        <option *ngIf="!isLoadingProducts && products.length === 0" [ngValue]="null" disabled>Nenhum produto encontrado.</option>
+        <option *ngFor="let product of products" [ngValue]="product">
+          {{ product.codigo }} - {{ product.nome_produto }}
+        </option>
+      </select>
+      <small *ngIf="!isLoadingProducts && products.length > 0">Selecione um produto para visualizar seus detalhes.</small>
 
-    <!-- <div class="input-group" >
-      <label for="zpl-content">Conteúdo ZPL:</label>
-      <textarea id="zpl-content" [(ngModel)]="zplContent" rows="15" placeholder="Insira seu código ZPL aqui..."></textarea>
-    </div> -->
-
+      <div class="product-load-status-container"> <small *ngIf="productsErrorMessage" class="error-message-inline">{{ productsErrorMessage }}</small>
+        <button class="refresh-button" (click)="loadProducts()" [disabled]="isLoadingProducts">
+          <i class="fas fa-sync-alt"></i> {{ isLoadingProducts ? 'Atualizando...' : 'Atualizar Lista' }}
+        </button>
+      </div>
+    </div>
     <div class="parameters">
       <div class="param-group">
         <label for="dpmm">DPI (Pontos por mm):</label>

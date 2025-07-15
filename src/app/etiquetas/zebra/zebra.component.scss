@@ -170,7 +170,8 @@ h1, h2 {
 }
 
 
-.db-load-status-container {
+.db-load-status-container,
+.product-load-status-container {
   display: flex;
   flex-direction: column; /* Coloca os itens em coluna */
   align-items: center;   /* Centraliza os itens horizontalmente */

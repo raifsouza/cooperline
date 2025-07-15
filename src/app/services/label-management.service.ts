@@ -2,13 +2,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { LabelEntry } from '../models/label-entry.model'; // Importe o modelo de etiqueta
+import { LabelEntry, ProductEntry } from '../models/label-entry.model'; // Importe o modelo de etiqueta
 
 @Injectable({
   providedIn: 'root'
 })
 export class LabelManagementService {
   private apiUrl = 'http://localhost:3000/api/labels'; // Ajuste esta URL para o seu backend
+  private productsApiUrl = 'http://localhost:3000/api/products'; 
 
   constructor(private http: HttpClient) { }
 
@@ -18,6 +19,14 @@ export class LabelManagementService {
    */
   getAllLabels(): Observable<LabelEntry[]> {
     return this.http.get<LabelEntry[]>(this.apiUrl);
+  }
+
+  /**
+   * Obtém todas as informações de etiqueta salvas no banco de dados.
+   * @returns Um Observable com um array de LabelEntry.
+   */
+  getAllProducts(): Observable<ProductEntry[]> {
+    return this.http.get<ProductEntry[]>(this.productsApiUrl);
   }
 
   /**

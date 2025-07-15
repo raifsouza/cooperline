@@ -14,3 +14,20 @@ export interface LabelEntry {
   // REMOVIDO: dpmm, width_inch, height_inch, created_at, updated_at
   // porque não estavam na sua tabela conforme a imagem.
 }
+
+export interface ProductEntry {
+  codigo: string;
+  nome_produto: string;
+  tamanho_padrao?: string;
+  designacao?: string;
+  tensao?: string;
+  massa_bruta_kg_100m?: number;
+  norma_aplicada?: string;
+  composicao?: string;
+  numero_registro?: string;
+  cod_barras?: string;
+  pedido_oc?: string;
+  retalho?: string;
+  massa_liquida_kg_100m?: number;
+  // Adicione outras colunas da sua tabela product_entries se precisar delas no frontend
+}
