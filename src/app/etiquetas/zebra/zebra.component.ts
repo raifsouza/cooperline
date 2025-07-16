@@ -9,6 +9,7 @@ import { LabelManagementService } from '../../services/label-management.service'
 import { PrintHistoryEntry } from '../../models/print-history.model';
 import { LabelEntry, ProductEntry } from '../../models/label-entry.model';
 import { HttpClientModule } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
 
 declare var BrowserPrint: any;
 
@@ -48,7 +49,6 @@ export class ZebraComponent implements OnInit, OnDestroy {
 
   loggedInUserName: string | null = null;
   loggedInUserId: string | null = null;
-  loggedInUserMatricula: string | null = null;
 
   // PROPRIEDADES EXISTENTES para etiquetas do banco de dados
   dbLabels: LabelEntry[] = [];
@@ -66,7 +66,8 @@ export class ZebraComponent implements OnInit, OnDestroy {
     private labelaryService: LabelaryService,
     private sanitizer: DomSanitizer,
     private printHistoryApiService: PrintHistoryApiService,
-    private labelManagementService: LabelManagementService
+    private labelManagementService: LabelManagementService,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
@@ -84,30 +85,21 @@ export class ZebraComponent implements OnInit, OnDestroy {
   }
 
   private loadUserDataFromLocalStorage(): void {
-    const authDataString = localStorage.getItem('CapacitorStorage.inspector_auth');
-    if (authDataString) {
-      try {
-        const authData = JSON.parse(authDataString);
-        if (authData && authData.user) {
-          const user: AuthUser = authData.user;
-          this.loggedInUserId = user.id;
-          this.loggedInUserName = user.nome;
-          this.loggedInUserMatricula = user.matricula;
-          console.log('Dados do usuário carregados:', this.loggedInUserName, this.loggedInUserId, this.loggedInUserMatricula);
-        }
-      } catch (e) {
-        console.error('Erro ao parsear dados de autenticação do localStorage:', e);
-      }
-    } else {
-      this.loggedInUserName = localStorage.getItem('userName');
-      console.log('UserName carregado diretamente do localStorage:', this.loggedInUserName);
-    }
+   this.authService.userId$.subscribe(userId => {
+      this.loggedInUserId = userId;
+    });
+    this.authService.userName$.subscribe(userName => {
+      this.loggedInUserName = userName;
+    });
 
-    if (!this.loggedInUserId && !this.loggedInUserName) {
+    // Se você precisa de um fallback imediato caso o usuário não esteja logado,
+    // ou se as subscriptions não tiverem emitido um valor ainda (apenas na primeira carga).
+    // O ideal é que o AuthService já tenha populado os BehaviorSubjects
+    // a partir do localStorage no seu construtor.
+    if (!this.authService.getUserId()) {
       this.loggedInUserId = 'desconhecido';
       this.loggedInUserName = 'Usuário Desconhecido';
-      this.loggedInUserMatricula = '000000';
-      console.warn('Nenhum dado de usuário encontrado no localStorage. Usando valores padrão.');
+      console.warn('Dados de usuário não disponíveis via AuthService no início. Usando valores padrão.');
     }
   }
 
@@ -595,25 +587,27 @@ export class ZebraComponent implements OnInit, OnDestroy {
     // Ela pode ser usada para outras configurações do BrowserPrint, se necessário.
     const printOptions = {}; // Deixa vazio ou com outras opções se houver
 
-    this.selectedPrinter.send(
+   this.selectedPrinter.send(
       zplToPrint,
       (success: any) => {
         console.log('ZPL enviado com sucesso para a impressora Zebra!', success);
         alert('Etiqueta enviada para a impressora Zebra com sucesso!');
 
-        if (this.loggedInUserId) { // Verifica se o ID do usuário está disponível
+        // Agora pegue os dados do usuário do AuthService
+        const currentUserId = this.authService.getUserId();
+        const currentUserName = this.authService.getUserName(); // Se você tiver um getter para userName
+
+
+        if (currentUserId) { // Verifica se o ID do usuário está disponível
           const selectedLabel = this.dbLabels.find(label => label.id === this.selectedDbLabelId);
 
           const historyEntry: PrintHistoryEntry = {
-            userId: this.loggedInUserId, // ID do usuário (pode ser o mesmo da matrícula se você usa assim)
-            userName: this.loggedInUserName || 'Nome não disponível',
-            userMatricula: this.loggedInUserMatricula || 'Matrícula não disponível', // <--- Adicionado/Garantido
+            userId: currentUserId,
+            userName: currentUserName || 'Nome não disponível',
             timestamp: new Date().toISOString(),
             printerName: this.selectedPrinter.name,
             copies: this.numberOfCopies,
             labelName: selectedLabel ? selectedLabel.file_name : 'ZPL Manual'
-            // productName: this.selectedProduct?.nome_produto, // Opcional: para salvar qual produto foi impresso
-            // zplContentSent: zplToPrint // Opcional: para salvar o ZPL exato impresso
           };
 
           this.printHistoryApiService.savePrintEntry(historyEntry).subscribe({

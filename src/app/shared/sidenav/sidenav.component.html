@@ -21,6 +21,7 @@
       <span style="margin-left: 20px;" *ngIf="userAccessLevel === 1">Menu administrativo</span>
         <a *ngIf="userAccessLevel === 1" href="/painel-administrativo" routerLinkActive="active-link" (click)="onLinkClick()">Cadastro de usuários</a>
         <a *ngIf="userAccessLevel === 1" href="/upload" routerLinkActive="active-link" (click)="onLinkClick()">Cadastro de etiquetas</a>
+         <a *ngIf="userAccessLevel === 1" href="/print-history" routerLinkActive="active-link" (click)="onLinkClick()">Historico de impressão</a>
       </nav>
   </aside>
 </div>

@@ -3,7 +3,6 @@ export interface PrintHistoryEntry {
   id?: number; // Opcional, será gerado pelo banco de dados
   userId: string; // Se for o ID interno do usuário
   userName: string;
-  userMatricula: string; // <--- Certifique-se que este campo existe ou adicione-o
   timestamp: string;
   printerName: string;
   copies: number;
