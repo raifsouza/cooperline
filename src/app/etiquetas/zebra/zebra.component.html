@@ -1,6 +1,134 @@
-<app-navbar (toggleSidenavRequest)="handleToggleSidenavRequest()"></app-navbar>
-<app-sidenav [isOpen]="isSidenavVisible" (closeSidenavRequest)="handleCloseSidenavRequest()"></app-sidenav>
-<div class="container-zebra">
-  <h2>Sua area de impressão Zebra</h2>
-  <p>Area restrita</p>
+<div class="label-editor-container">
+  <h1>Editor e Impressor de Etiquetas Zebra</h1>
+
+  <div class="controls">
+    <div class="input-group">
+      <label for="db-label-select">Carregar Etiqueta do Banco de Dados:</label>
+      <select id="db-label-select" [(ngModel)]="selectedDbLabelId" (change)="onDbLabelSelected()">
+        <option [ngValue]="null" disabled>-- Selecione uma etiqueta --</option>
+        <option *ngIf="isLoadingDbLabels" [ngValue]="null" disabled>Carregando etiquetas...</option>
+        <option *ngIf="!isLoadingDbLabels && dbLabels.length === 0" [ngValue]="null" disabled>Nenhuma etiqueta salva.</option>
+        <option *ngFor="let label of dbLabels" [ngValue]="label.id">{{ label.file_name }}</option>
+      </select>
+      <small *ngIf="!isLoadingDbLabels && dbLabels.length > 0">Selecione uma etiqueta para pré-visualizar e imprimir.</small>
+
+      <div class="db-load-status-container">
+        <small *ngIf="dbLabelsErrorMessage" class="error-message-inline">{{ dbLabelsErrorMessage }}</small>
+        <button class="refresh-button" (click)="loadDbLabels()" [disabled]="isLoadingDbLabels">
+          <i class="fas fa-sync-alt"></i> {{ isLoadingDbLabels ? 'Atualizando...' : 'Atualizar Lista' }}
+        </button>
+      </div>
+    </div>
+    
+    <div class="input-group">
+      <label for="product-select">Carregar informações da etiqueta:</label> <select id="product-select" [(ngModel)]="selectedProduct" (change)="onProductSelected()">
+        <option [ngValue]="null" disabled>-- Selecione um produto --</option>
+        <option *ngIf="isLoadingProducts" [ngValue]="null" disabled>Carregando produtos...</option>
+        <option *ngIf="!isLoadingProducts && products.length === 0" [ngValue]="null" disabled>Nenhum produto encontrado.</option>
+        <option *ngFor="let product of products" [ngValue]="product">
+          {{ product.codigo }} - {{ product.nome_produto }}
+        </option>
+      </select>
+      <small *ngIf="!isLoadingProducts && products.length > 0">Selecione um produto para visualizar seus detalhes.</small>
+
+      <div class="product-load-status-container"> <small *ngIf="productsErrorMessage" class="error-message-inline">{{ productsErrorMessage }}</small>
+        <button class="refresh-button" (click)="loadProducts()" [disabled]="isLoadingProducts">
+          <i class="fas fa-sync-alt"></i> {{ isLoadingProducts ? 'Atualizando...' : 'Atualizar Lista' }}
+        </button>
+      </div>
+    </div>
+    <div class="parameters">
+      <div class="param-group">
+        <label for="dpmm">DPI (Pontos por mm):</label>
+        <select id="dpmm" [(ngModel)]="dpmm">
+          <option [value]="8">203 dpi (8 dpmm)</option>
+          <option [value]="12">300 dpi (12 dpmm)</option>
+          <option [value]="24">600 dpi (24 dpmm)</option>
+        </select>
+      </div>
+      <div class="param-group">
+        <label for="width">Largura (polegadas):</label>
+        <input type="number" id="width" [(ngModel)]="width" min="0.1" step="0.1">
+      </div>
+      <div class="param-group">
+        <label for="height">Altura (polegadas):</label>
+        <input type="number" id="height" [(ngModel)]="height" min="0.1" step="0.1">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button (click)="renderLabel()" [disabled]="isLoading || !zplContent">
+        {{ isLoading ? 'Renderizando...' : 'Renderizar Etiqueta' }}
+      </button>
+      <button (click)="downloadLabel()" [disabled]="!renderedLabelUrl">Baixar Etiqueta</button>
+      <button class="primary-print-button" (click)="openPrintOptionsPopup()" [disabled]="!renderedLabelUrl">
+        Imprimir Etiqueta
+      </button>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">
+      <p>{{ errorMessage }}</p>
+    </div>
+  </div>
+
+  <div class="label-preview">
+    <h2>Pré-visualização da Etiqueta:</h2>
+    <div *ngIf="isLoading" class="loading-spinner">Carregando...</div>
+    <div *ngIf="!isLoading && !renderedLabelUrl && !errorMessage" class="no-preview">
+      Nenhuma etiqueta para pré-visualizar.
+    </div>
+    <img *ngIf="renderedLabelUrl && !isLoading" [src]="renderedLabelUrl" alt="Etiqueta ZPL Renderizada">
+  </div>
+</div>
+
+<div class="print-options-popup-overlay" *ngIf="showPrintOptionsPopup">
+  <div class="print-options-popup">
+    <h2>Escolha a Opção de Impressão</h2>
+
+    <div class="print-option-group">
+      <h3>Impressora Padrão (Sistema Operacional)</h3>
+      <p>Imprime a pré-visualização renderizada (imagem/PDF) usando o driver de impressão padrão do seu sistema. Isso abre a caixa de diálogo de impressão do navegador.</p>
+      <button (click)="printRenderedImage()" [disabled]="!renderedLabelUrl">
+        Imprimir via Driver Padrão
+      </button>
+    </div>
+
+    <hr>
+    <div class="print-option-group">
+      <h3>Impressora Zebra (ZPL Direto)</h3>
+      <p>Envie o ZPL diretamente para uma impressora Zebra conectada localmente via Zebra Browser Print.</p>
+
+      <div *ngIf="isConnectingToPrinter && !selectedPrinter" class="loading-spinner">
+        Conectando à impressora...
+        <p>{{ printerStatus }}</p>
+      </div>
+
+      <div *ngIf="selectedPrinter">
+        <p>Impressora Conectada: <strong>{{ selectedPrinter.name }}</strong></p>
+        <label for="zebra-printer-select">Selecionar Outra Impressora Zebra:</label>
+        <select id="zebra-printer-select" [(ngModel)]="selectedPrinter">
+          <option [ngValue]="null" disabled>-- Selecione uma impressora --</option>
+          <option *ngFor="let printer of printerList" [ngValue]="printer">{{ printer.name }}</option>
+        </select>
+        <button (click)="setupBrowserPrint()">Atualizar Lista de Impressoras</button>
+      </div>
+
+      <div *ngIf="!isConnectingToPrinter && !selectedPrinter">
+          <p>Status da Conexão: {{ printerStatus }}</p>
+          <p>Nenhuma impressora Zebra encontrada. Certifique-se de que o Zebra Browser Print está rodando e as impressoras estão conectadas.</p>
+          <button (click)="setupBrowserPrint()">Tentar Conectar Novamente</button>
+      </div>
+
+      <div class="param-group">
+        <label for="copies">Quantidade de Cópias:</label>
+        <input type="number" id="copies" [(ngModel)]="numberOfCopies" min="1" step="1">
+      </div>
+
+      <button (click)="printZebraDirectly()" [disabled]="!selectedPrinter || !zplContent">
+        Imprimir ZPL na Impressora Zebra
+      </button>
+    </div>
+
+    <button class="close-popup-button" (click)="closePrintOptionsPopup()">Fechar</button>
+  </div>
 </div>

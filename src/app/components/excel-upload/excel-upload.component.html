@@ -1,0 +1,32 @@
+<div class="file-upload-container">
+  <h1>Sistema de Upload</h1>
+
+  <div class="tabs">
+    <button [class.active]="activeTab === 'excel'" (click)="setActiveTab('excel')">
+      Upload Excel
+    </button>
+    <button [class.active]="activeTab === 'prn'" (click)="setActiveTab('prn')">
+      Upload PRN
+    </button>
+  </div>
+
+  <div *ngIf="activeTab === 'excel'" class="tab-content">
+    <h2>Upload de Arquivo Excel (.xlsx)</h2>
+    <input type="file" (change)="onExcelFileSelected($event)" accept=".xlsx" />
+    <button (click)="onExcelUpload()" [disabled]="!selectedExcelFile">Enviar Excel</button>
+
+    <div *ngIf="excelUploadMessage" [ngClass]="{ 'success-message': !isExcelError, 'error-message': isExcelError }">
+      {{ excelUploadMessage }}
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'prn'" class="tab-content">
+    <h2>Upload de Arquivo .PRN (Etiquetas)</h2>
+    <input type="file" (change)="onPrnFileSelected($event)" accept=".prn" />
+    <button (click)="onPrnUpload()" [disabled]="!selectedPrnFile">Enviar Arquivo .PRN</button>
+
+    <div *ngIf="prnUploadMessage" [ngClass]="{ 'success-message': !isPrnError, 'error-message': isPrnError }">
+      {{ prnUploadMessage }}
+    </div>
+  </div>
+</div>

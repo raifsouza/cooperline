@@ -4,7 +4,7 @@
 
   <aside class="sidenav">
     <div class="sidenav-header">
-      <h3>Menu</h3>
+      <h3 style="margin-left: 80px;">Menu</h3>
       <button type="button" class="closebtn" aria-label="Close" (click)="onClose()">
         &times; </button>
     </div>
@@ -18,8 +18,10 @@
       <div class="submenu-content" *ngIf="isSidenavSubmenuOpen">
         <a href="/etiquetas/zebra" routerLinkActive="active-link" (click)="onLinkClick()">Zebra</a>
       </div>
-      <a *ngIf="userAccessLevel === 1" href="/painel-administrativo" routerLinkActive="active-link" (click)="onLinkClick()">Painel administrativo</a>
+      <span style="margin-left: 20px;" *ngIf="userAccessLevel === 1">Menu administrativo</span>
+        <a *ngIf="userAccessLevel === 1" href="/painel-administrativo" routerLinkActive="active-link" (click)="onLinkClick()">Cadastro de usuários</a>
+        <a *ngIf="userAccessLevel === 1" href="/upload" routerLinkActive="active-link" (click)="onLinkClick()">Cadastro de etiquetas</a>
+         <a *ngIf="userAccessLevel === 1" href="/print-history" routerLinkActive="active-link" (click)="onLinkClick()">Historico de impressão</a>
       </nav>
   </aside>
-
 </div>

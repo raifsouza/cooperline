@@ -1,1 +1,6 @@
-  <router-outlet></router-outlet>
+<ng-container *ngIf="showNavAndSidenav">
+  <app-navbar (toggleSidenavRequest)="handleToggleSidenavRequest()"></app-navbar>
+  <app-sidenav [isOpen]="isSidenavVisible" (closeSidenavRequest)="handleCloseSidenavRequest()"></app-sidenav>
+</ng-container>
+
+<router-outlet></router-outlet>

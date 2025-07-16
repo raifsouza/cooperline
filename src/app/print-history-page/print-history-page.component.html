@@ -1,0 +1,38 @@
+<div class="print-history-container">
+  <h2>Histórico de Impressões</h2>
+
+  <div *ngIf="isLoading" class="loading-message">
+    Carregando histórico...
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && printHistory.length === 0" class="no-data-message">
+    Nenhum registro de impressão encontrado.
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && printHistory.length > 0" class="history-table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Data/Hora</th>
+          <th>Usuário</th>
+          <th>Impressora</th>
+          <th>Etiqueta</th>
+          <th>Cópias</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let entry of printHistory">
+          <td>{{ formatTimestamp(entry.timestamp) }}</td>
+          <td>{{ entry.userName }}</td>
+          <td>{{ entry.printerName }}</td>
+          <td>{{ entry.labelName }}</td>
+          <td>{{ entry.copies }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

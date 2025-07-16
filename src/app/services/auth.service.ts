@@ -1,21 +1,23 @@
+// src/app/services/auth.service.ts
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, ReplaySubject, EMPTY, of } from 'rxjs'; // Importe BehaviorSubject
-import { tap, first, map, switchMap, catchError, filter } from 'rxjs/operators'; // Importe tap
+import { Observable, BehaviorSubject } from 'rxjs';
+import { tap, map } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { response, Router } from 'express';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private apiUrl = 'http://localhost:3000/api/login';
-  // _userName deve começar refletindo a ausência de usuário até ser carregado
-  private _userName = new BehaviorSubject<string | null>(null); // BehaviorSubject para armazenar o nome do usuário logado. Começa com null, indicando que ninguém está logado
-  private _userAccessLevel = new BehaviorSubject<number | null>(null); //BehaviorSubject para armazena nível de acesso do usuário
+  private _userName = new BehaviorSubject<string | null>(null);
+  private _userAccessLevel = new BehaviorSubject<number | null>(null);
+  private _userId = new BehaviorSubject<string | null>(null); // MANTIDO: _userId
 
-  public readonly userName$ = this._userName.asObservable(); // Observable público
+  public readonly userName$ = this._userName.asObservable();
   public readonly userAccessLevel$ = this._userAccessLevel.asObservable();
+  public readonly userId$ = this._userId.asObservable(); // MANTIDO: userId$
+  // REMOVIDO: public readonly userMatricula$ = this._userMatricula.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -24,22 +26,26 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       const storedUserName = localStorage.getItem('userName');
       const storedAccessLevel = localStorage.getItem('userAccessLevel');
+      const storedUserId = localStorage.getItem('userId'); // MANTIDO: storedUserId
 
       if (storedUserName) this._userName.next(storedUserName);
       if (storedAccessLevel) this._userAccessLevel.next(Number(storedAccessLevel));
+      if (storedUserId) this._userId.next(storedUserId); // MANTIDO: if (storedUserId)
     }
   }
 
   login(nome: string, senha: string): Observable<any> {
     return this.http.post(this.apiUrl, { nome, senha }).pipe(
       tap((response: any) => {
-        if (response && response.user && response.user.nome && response.user.nivel_acesso) {
+        if (response && response.user && response.user.nome && response.user.nivel_acesso && response.user.id) {
           this._userName.next(response.user.nome);
           this._userAccessLevel.next(response.user.nivel_acesso);
+          this._userId.next(response.user.id.toString()); // MANTIDO: this._userId.next
 
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('userName', response.user.nome);
-            localStorage.setItem('userAccessLevel', response.user.nivel_acesso);
+            localStorage.setItem('userAccessLevel', response.user.nivel_acesso.toString());
+            localStorage.setItem('userId', response.user.id.toString()); // MANTIDO: localStorage.setItem('userId')
           }
         }
       })
@@ -49,16 +55,16 @@ export class AuthService {
   logout(): void {
     this._userName.next(null);
     this._userAccessLevel.next(null);
+    this._userId.next(null); // MANTIDO: _userId.next(null)
+
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('userName');
       localStorage.removeItem('userAccessLevel');
+      localStorage.removeItem('userId'); // MANTIDO: localStorage.removeItem('userId')
     }
   }
 
-  // Método para verificar se o usuário está logado
-  //  (opcional, mas útil para guards)
   isLoggedIn_sync(): boolean {
-    // return this._userName.getValue() !== null;
     const isLoggedInResult = this._userName.getValue() !== null;
     console.log(`AuthService.isLoggedIn() called. _userName value:, ${this._userName.getValue()}, Result:, ${isLoggedInResult}`);
     return isLoggedInResult;
@@ -70,8 +76,15 @@ export class AuthService {
     );
   }
 
-   getAccessLevel(): number | null {
+  getAccessLevel(): number | null {
     return this._userAccessLevel.getValue();
   }
 
+  getUserId(): string | null { // MANTIDO: getUserId()
+    return this._userId.getValue();
+  }
+
+  getUserName(): string | null {
+    return this._userName.getValue();
+  }
 }
