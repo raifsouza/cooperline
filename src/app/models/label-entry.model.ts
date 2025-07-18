@@ -31,3 +31,13 @@ export interface ProductEntry {
   massa_liquida_kg_100m?: number;
   // Adicione outras colunas da sua tabela product_entries se precisar delas no frontend
 }
+
+export interface LoteEntry {
+  id: number;
+  lote: string;
+  produto: string; // Pode ser o código ou nome do produto
+  fabricadoEm: string; // Ou Date, dependendo de como você recebe do Prisma
+  zplContent?: string;
+  // Se você quiser mais campos específicos do lote na etiqueta, adicione-os aqui
+  // Ex: numeroBobina?: string;
+}

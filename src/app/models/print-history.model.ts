@@ -6,8 +6,10 @@ export interface PrintHistoryEntry {
   timestamp: string;
   printerName: string;
   copies: number;
-  labelName: string;
-  // Adicione outros campos relevantes se necessário, como:
-  // productName?: string; // Nome do produto associado à etiqueta
+  labelName?: string | null;
+  productCode?: string | null;
+  productName?: string | null;
+  productLote?:string | null; // Nome do produto associado à etiqueta
+  reprint:boolean
   // zplContentSent?: string; // O ZPL exato que foi enviado (útil para depuração/auditoria)
 }

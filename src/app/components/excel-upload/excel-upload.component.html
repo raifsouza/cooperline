@@ -3,15 +3,17 @@
 
   <div class="tabs">
     <button [class.active]="activeTab === 'excel'" (click)="setActiveTab('excel')">
-      Upload Excel
+      Produtos
     </button>
     <button [class.active]="activeTab === 'prn'" (click)="setActiveTab('prn')">
-      Upload PRN
+      Etiqueta
     </button>
+    <button [class.active]="activeTab === 'lote'" (click)="setActiveTab('lote')">
+      Lote </button>
   </div>
 
   <div *ngIf="activeTab === 'excel'" class="tab-content">
-    <h2>Upload de Arquivo Excel (.xlsx)</h2>
+    <h2>Upload de Arquivo de Produtos (.xlsx)</h2>
     <input type="file" (change)="onExcelFileSelected($event)" accept=".xlsx" />
     <button (click)="onExcelUpload()" [disabled]="!selectedExcelFile">Enviar Excel</button>
 
@@ -27,6 +29,16 @@
 
     <div *ngIf="prnUploadMessage" [ngClass]="{ 'success-message': !isPrnError, 'error-message': isPrnError }">
       {{ prnUploadMessage }}
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'lote'" class="tab-content">
+    <h2>Upload de Arquivo de Lote (.xlsx)</h2>
+    <input type="file" (change)="onLoteFileSelected($event)" accept=".csv,.xlsx" />
+    <button (click)="onLoteUpload()" [disabled]="!selectedLoteFile">Enviar Lote</button>
+
+    <div *ngIf="loteUploadMessage" [ngClass]="{ 'success-message': !isLoteError, 'error-message': isLoteError }">
+      {{ loteUploadMessage }}
     </div>
   </div>
 </div>

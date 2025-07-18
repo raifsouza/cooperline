@@ -1,22 +1,13 @@
 /* src/app/components/file-upload/file-upload.component.scss */
-
-$primary-color: #007bff; // Azul vibrante para botões e realces
-$accent-color: #28a745;  // Verde para sucesso
-$danger-color: #dc3545;  // Vermelho para erros
-$border-color: #dee2e6;  // Cor de borda clara
-$background-light: #f8f9fa; // Fundo claro para o container
-$text-color: #343a40;    // Cor de texto principal
-$shadow-light: rgba(0, 0, 0, 0.1); // Sombra leve para elementos
-
 .file-upload-container {
   max-width: 700px; // Ajustado para ser um pouco mais centralizado e compacto
   margin: 40px auto;
   padding: 30px;
   background-color: #ffffff;
   border-radius: 12px; // Bordas mais arredondadas
-  box-shadow: 0 8px 25px $shadow-light; // Sombra mais proeminente e suave
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); // Sombra mais proeminente e suave
   font-family: 'Arial', sans-serif; // Fonte comum e limpa
-  color: $text-color;
+  color: #343a40;
   animation: fadeIn 0.5s ease-out; // Adiciona uma animação de fade-in
 }
 
@@ -27,7 +18,7 @@ $shadow-light: rgba(0, 0, 0, 0.1); // Sombra leve para elementos
 
 h1 {
   text-align: center;
-  color: $primary-color; // Título principal com a cor primária
+  color: #007bff; // Título principal com a cor primária
   margin-bottom: 30px;
   font-size: 2.2em; // Um pouco maior
   font-weight: 600; // Mais encorpado
@@ -36,7 +27,7 @@ h1 {
 
 h2 {
   text-align: center;
-  color: $text-color;
+  color: #343a40;
   margin-top: 20px;
   margin-bottom: 25px;
   font-size: 1.6em;
@@ -47,7 +38,7 @@ h2 {
   display: flex;
   justify-content: center;
   margin-bottom: 30px;
-  border-bottom: 2px solid $border-color; // Linha sutil para as abas
+  border-bottom: 2px solid #dee2e6; // Linha sutil para as abas
 
   button {
     padding: 12px 25px; // Preenchimento maior
@@ -56,16 +47,16 @@ h2 {
     cursor: pointer;
     font-size: 1.1em;
     font-weight: 500;
-    color: lighten($text-color, 20%); // Cor de texto mais clara para abas inativas
+    color: lighten(#343a40, 20%); // Cor de texto mais clara para abas inativas
     transition: all 0.3s ease;
     position: relative; // Para o indicador de aba ativa
 
     &:hover {
-      color: $primary-color;
+      color: #007bff;
     }
 
     &.active {
-      color: $primary-color;
+      color: #007bff;
       font-weight: 700;
       &::after { // Linha indicadora abaixo da aba ativa
         content: '';
@@ -74,7 +65,7 @@ h2 {
         left: 0;
         width: 100%;
         height: 2px;
-        background-color: $primary-color;
+        background-color: #007bff;
       }
     }
   }
@@ -82,9 +73,9 @@ h2 {
 
 .tab-content {
   padding: 25px;
-  background-color: $background-light; // Fundo ligeiramente diferente para o conteúdo da aba
+  background-color: #f8f9fa; // Fundo ligeiramente diferente para o conteúdo da aba
   border-radius: 8px;
-  border: 1px solid $border-color;
+  border: 1px solid #dee2e6;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); // Sombra interna suave
 }
 
@@ -92,7 +83,7 @@ input[type="file"] {
   display: block;
   margin: 20px auto;
   padding: 12px;
-  border: 1px solid $border-color;
+  border: 1px solid #dee2e6;
   border-radius: 8px; // Bordas mais arredondadas
   width: calc(100% - 24px); // Para contabilizar o padding
   background-color: #fff;
@@ -100,8 +91,8 @@ input[type="file"] {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
-    border-color: lighten($primary-color, 20%);
-    box-shadow: 0 0 0 2px rgba($primary-color, 0.1);
+    border-color: lighten(#007bff, 20%);
+    box-shadow: 0 0 0 2px rgba(#007bff, 0.1);
   }
 
   // Estilo para o botão de "Escolher arquivo" em navegadores Webkit/Blink (Chrome, Edge)
@@ -112,9 +103,9 @@ input[type="file"] {
   &::before {
     content: 'Selecionar Arquivo'; // Texto customizado
     display: inline-block;
-    background: $primary-color;
+    background: #007bff;
     color: white;
-    border: 1px solid $primary-color;
+    border: 1px solid #007bff;
     border-radius: 4px;
     padding: 8px 12px;
     outline: none;
@@ -125,7 +116,7 @@ input[type="file"] {
     transition: background-color 0.3s ease;
 
     &:hover {
-      background-color: darken($primary-color, 10%);
+      background-color: darken(#007bff, 10%);
     }
   }
 }
@@ -134,7 +125,7 @@ button {
   display: block;
   width: 100%;
   padding: 12px 15px;
-  background-color: $accent-color; // Cor verde para o botão principal
+  background-color: #28a745; // Cor verde para o botão principal
   color: white;
   border: none;
   border-radius: 8px; // Bordas arredondadas
@@ -145,12 +136,12 @@ button {
   transition: background-color 0.3s ease, transform 0.2s ease;
 
   &:hover:not(:disabled) {
-    background-color: darken($accent-color, 8%); // Escurece no hover
+    background-color: darken(#28a745, 8%); // Escurece no hover
     transform: translateY(-2px); // Pequeno efeito de elevação
   }
 
   &:disabled {
-    background-color: lighten($accent-color, 20%); // Cor mais clara quando desabilitado
+    background-color: lighten(#28a745, 20%); // Cor mais clara quando desabilitado
     cursor: not-allowed;
     opacity: 0.7;
   }

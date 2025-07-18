@@ -21,7 +21,12 @@
           <th>Usuário</th>
           <th>Impressora</th>
           <th>Etiqueta</th>
+          <th>Produto</th>
+          <th>Codigo</th>
+          <th>Lote</th>
+          <th>Bobina</th> 
           <th>Cópias</th>
+          <th>Reimpressão</th>
         </tr>
       </thead>
       <tbody>
@@ -30,7 +35,12 @@
           <td>{{ entry.userName }}</td>
           <td>{{ entry.printerName }}</td>
           <td>{{ entry.labelName }}</td>
+          <td>{{ entry.productName }}</td>
+          <td>{{ entry.productCode }}</td>
+          <td>{{ getLoteWithoutBobina(entry.productLote ?? '') }}</td> 
+          <td>{{ getBobinaFromLote(entry.productLote ?? '') }}</td> 
           <td>{{ entry.copies }}</td>
+          <td>{{checkReprint(entry.reprint)}}</td>
         </tr>
       </tbody>
     </table>

@@ -2,41 +2,61 @@
   <h1>Editor e Impressor de Etiquetas Zebra</h1>
 
   <div class="controls">
-    <div class="input-group">
-      <label for="db-label-select">Carregar Etiqueta do Banco de Dados:</label>
-      <select id="db-label-select" [(ngModel)]="selectedDbLabelId" (change)="onDbLabelSelected()">
-        <option [ngValue]="null" disabled>-- Selecione uma etiqueta --</option>
-        <option *ngIf="isLoadingDbLabels" [ngValue]="null" disabled>Carregando etiquetas...</option>
-        <option *ngIf="!isLoadingDbLabels && dbLabels.length === 0" [ngValue]="null" disabled>Nenhuma etiqueta salva.</option>
-        <option *ngFor="let label of dbLabels" [ngValue]="label.id">{{ label.file_name }}</option>
-      </select>
-      <small *ngIf="!isLoadingDbLabels && dbLabels.length > 0">Selecione uma etiqueta para pré-visualizar e imprimir.</small>
+    <h2>Busca de Etiqueta por Lote</h2>
 
-      <div class="db-load-status-container">
-        <small *ngIf="dbLabelsErrorMessage" class="error-message-inline">{{ dbLabelsErrorMessage }}</small>
-        <button class="refresh-button" (click)="loadDbLabels()" [disabled]="isLoadingDbLabels">
-          <i class="fas fa-sync-alt"></i> {{ isLoadingDbLabels ? 'Atualizando...' : 'Atualizar Lista' }}
-        </button>
+    <div class="search-input-container">
+      <div class="input-field-wrapper">
+        <label for="loteNumberInput">Número do Lote:</label>
+        <input type="text" id="loteNumberInput" [(ngModel)]="loteNumberInput" (input)="onLoteInputChange()"
+          maxlength="11" placeholder="Ex: 0424-000038" title="O lote deve ter exatamente 11 dígitos" />
       </div>
-    </div>
-    
-    <div class="input-group">
-      <label for="product-select">Carregar informações da etiqueta:</label> <select id="product-select" [(ngModel)]="selectedProduct" (change)="onProductSelected()">
-        <option [ngValue]="null" disabled>-- Selecione um produto --</option>
-        <option *ngIf="isLoadingProducts" [ngValue]="null" disabled>Carregando produtos...</option>
-        <option *ngIf="!isLoadingProducts && products.length === 0" [ngValue]="null" disabled>Nenhum produto encontrado.</option>
-        <option *ngFor="let product of products" [ngValue]="product">
-          {{ product.codigo }} - {{ product.nome_produto }}
-        </option>
-      </select>
-      <small *ngIf="!isLoadingProducts && products.length > 0">Selecione um produto para visualizar seus detalhes.</small>
 
-      <div class="product-load-status-container"> <small *ngIf="productsErrorMessage" class="error-message-inline">{{ productsErrorMessage }}</small>
+      <div class="input-field-wrapper">
+        <label for="bobinaNumberInput">Número da Bobina:</label>
+        <input type="text" id="bobinaNumberInput" [(ngModel)]="bobinaNumberInput" (input)="onBobinaInputChange()"
+          [disabled]="!isBobinaInputEnabled()" maxlength="1" pattern="\d{1}" placeholder="1 dígito"
+          title="Número da bobina (1 dígito)" />
+      </div>
+
+      <button class="search-button" (click)="searchLabelsByLote()" [disabled]="!isSearchButtonEnabled()"
+        title="Buscar Lote e Produto">
+        <i class="material-icons">search</i>
+      </button>
+    </div>
+
+    <div *ngIf="isLoadingLoteLabels" class="loading-spinner">
+      Carregando informações do lote...
+    </div>
+    <div *ngIf="loteLabelsErrorMessage" class="error-message-inline">
+      {{ loteLabelsErrorMessage }}
+    </div>
+
+    <hr>
+
+    <div class="input-group">
+      <label for="productSelect">Selecionar Produto:</label>
+      <ng-select id="productSelect" [disabled]="!isSelectedProduct" [items]="products" bindLabel="nome_produto"
+        [(ngModel)]="selectedProduct" [searchFn]="customSearchFn" [addTag]="false" [loading]="isLoadingProducts"
+        [clearable]="true" placeholder="Selecione ou busque um Produto" (change)="onProductSelected()"
+        [notFoundText]="isLoadingProducts ? 'Carregando produtos...' : (products.length === 0 ? 'Nenhum produto encontrado.' : 'Nenhum produto corresponde à busca.')">
+        <ng-template ng-option-tmp let-item="item">
+          {{ item.codigo }} - {{ item.nome_produto }}
+        </ng-template>
+        <ng-template ng-label-tmp let-item="item">
+          {{ item.codigo }} - {{ item.nome_produto }}
+        </ng-template>
+      </ng-select>
+      <small *ngIf="!isLoadingProducts && products.length > 0">Selecione um produto para visualizar seus
+        detalhes.</small>
+
+      <div class="product-load-status-container">
+        <small *ngIf="productsErrorMessage" class="error-message-inline">{{ productsErrorMessage }}</small>
         <button class="refresh-button" (click)="loadProducts()" [disabled]="isLoadingProducts">
-          <i class="fas fa-sync-alt"></i> {{ isLoadingProducts ? 'Atualizando...' : 'Atualizar Lista' }}
+          <i class="material-icons">refresh</i> {{ isLoadingProducts ? 'Atualizando...' : 'Atualizar Lista' }}
         </button>
       </div>
     </div>
+
     <div class="parameters">
       <div class="param-group">
         <label for="dpmm">DPI (Pontos por mm):</label>
@@ -61,7 +81,8 @@
         {{ isLoading ? 'Renderizando...' : 'Renderizar Etiqueta' }}
       </button>
       <button (click)="downloadLabel()" [disabled]="!renderedLabelUrl">Baixar Etiqueta</button>
-      <button class="primary-print-button" (click)="openPrintOptionsPopup()" [disabled]="!renderedLabelUrl">
+      <button class="primary-print-button" (click)="openPrintOptionsPopup()"
+        [disabled]="!renderedLabelUrl || !selectedProduct">
         Imprimir Etiqueta
       </button>
     </div>
@@ -81,20 +102,33 @@
   </div>
 </div>
 
-<div class="print-options-popup-overlay" *ngIf="showPrintOptionsPopup">
+
+  <div *ngIf="showReprintConfirmationPopup" class="popup-overlay">
+    <div class="popup-content">
+      <h3>Confirmação de Reimpressão</h3>
+      <p>Esta etiqueta com o mesmo Código e Lote já foi impressa recentemente. Deseja prosseguir com a reimpressão?</p>
+      <div class="popup-actions">
+        <button class="btn btn-confirm" (click)="confirmReprint()">Sim, Reimprimir</button>
+        <button class="btn btn-cancel" (click)="cancelReprint()">Não, Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+<div class="print-options-popup-overlay" *ngIf="showPrintOptionsPopup && !showReprintConfirmationPopup">
   <div class="print-options-popup">
     <h2>Escolha a Opção de Impressão</h2>
 
     <div class="print-option-group">
       <h3>Impressora Padrão (Sistema Operacional)</h3>
-      <p>Imprime a pré-visualização renderizada (imagem/PDF) usando o driver de impressão padrão do seu sistema. Isso abre a caixa de diálogo de impressão do navegador.</p>
+      <p>Imprime a pré-visualização renderizada (imagem/PDF) usando o driver de impressão padrão do seu sistema. Isso
+        abre a caixa de diálogo de impressão do navegador.</p>
       <button (click)="printRenderedImage()" [disabled]="!renderedLabelUrl">
         Imprimir via Driver Padrão
       </button>
     </div>
 
     <hr>
-    <div class="print-option-group">
+    <div class="print-option-group zebra-printer-options">
       <h3>Impressora Zebra (ZPL Direto)</h3>
       <p>Envie o ZPL diretamente para uma impressora Zebra conectada localmente via Zebra Browser Print.</p>
 
@@ -114,9 +148,10 @@
       </div>
 
       <div *ngIf="!isConnectingToPrinter && !selectedPrinter">
-          <p>Status da Conexão: {{ printerStatus }}</p>
-          <p>Nenhuma impressora Zebra encontrada. Certifique-se de que o Zebra Browser Print está rodando e as impressoras estão conectadas.</p>
-          <button (click)="setupBrowserPrint()">Tentar Conectar Novamente</button>
+        <p>Status da Conexão: {{ printerStatus }}</p>
+        <p>Nenhuma impressora Zebra encontrada. Certifique-se de que o Zebra Browser Print está rodando e as impressoras
+          estão conectadas.</p>
+        <button (click)="setupBrowserPrint()">Tentar Conectar Novamente</button>
       </div>
 
       <div class="param-group">
@@ -131,4 +166,5 @@
 
     <button class="close-popup-button" (click)="closePrintOptionsPopup()">Fechar</button>
   </div>
+
 </div>
