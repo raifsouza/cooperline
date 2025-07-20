@@ -27,7 +27,7 @@ interface AuthUser {
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule, NgSelectModule ],
   templateUrl: './zebra.component.html',
-  styleUrls: ['./zebra.component.scss'] 
+  styleUrls: ['./zebra.component.scss']
 })
 export class ZebraComponent implements OnInit, OnDestroy {
   zplContent: string = '^XA^FO50,50^A0N36,36^FDHello, Labelary!^FS^XZ'; // Pode manter um valor inicial ou deixar vazio
@@ -55,23 +55,23 @@ export class ZebraComponent implements OnInit, OnDestroy {
 
   loteNumberInput: string = '';
   bobinaNumberInput: string = '';
-  
+
   isLoadingLoteLabels: boolean = false;
   loteLabelsErrorMessage: string | null = null;
-  
-  searchedLabels: LoteEntry[] = []; 
-  selectedLoteLabel: LoteEntry | null = null; 
-  masterLoteZplContent: string | null = null; 
 
-  products: ProductEntry[] = []; 
+  searchedLabels: LoteEntry[] = [];
+  selectedLoteLabel: LoteEntry | null = null;
+  masterLoteZplContent: string | null = null;
+
+  products: ProductEntry[] = [];
   isSelectedProduct: boolean = false;
-  selectedProduct: ProductEntry | null = null; 
-  isLoadingProducts: boolean = false; 
-  productsErrorMessage: string | null = null; 
+  selectedProduct: ProductEntry | null = null;
+  isLoadingProducts: boolean = false;
+  productsErrorMessage: string | null = null;
 
   private _printHistoryCache: PrintHistoryEntry[] = [];
 
-  showReprintConfirmationPopup: boolean = false; 
+  showReprintConfirmationPopup: boolean = false;
 
   constructor(
     private labelaryService: LabelaryService,
@@ -82,8 +82,8 @@ export class ZebraComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.renderLabel(); 
-    this.loadProducts(); 
+    this.renderLabel();
+    this.loadProducts();
     this.setupBrowserPrint();
     this.loadUserDataFromLocalStorage();
   }
@@ -144,7 +144,7 @@ export class ZebraComponent implements OnInit, OnDestroy {
       this.loteLabelsErrorMessage = 'Por favor, preencha o Lote (11 dígitos) e a Bobina (1 dígito) corretamente.';
       this.searchedLabels = [];
       this.selectedLoteLabel = null;
-      this.masterLoteZplContent = null; 
+      this.masterLoteZplContent = null;
       this.zplContent = '';
       this.renderLabel();
       return;
@@ -155,9 +155,9 @@ export class ZebraComponent implements OnInit, OnDestroy {
     this.loteLabelsErrorMessage = null;
     this.searchedLabels = [];
     this.selectedLoteLabel = null;
-    this.masterLoteZplContent = null; 
-    this.zplContent = ''; 
-    
+    this.masterLoteZplContent = null;
+    this.zplContent = '';
+
     // Primeiro, faz a busca pelo Lote (sem a bobina no critério de busca do backend,
     // apenas para verificar se o lote existe e pegar uma entrada como 'selectedLoteLabel')
     // Assumindo que getLoteEntriesByLoteNumber pode receber apenas o lote ou o lote completo.
@@ -204,13 +204,13 @@ export class ZebraComponent implements OnInit, OnDestroy {
                     cleanedZpl = cleanedZpl.trim() + '^XZ';
                 }
 
-                cleanedZpl = cleanedZpl.replace(/[\r\n]+/g, ''); 
+                cleanedZpl = cleanedZpl.replace(/[\r\n]+/g, '');
                 cleanedZpl = cleanedZpl.trim();
 
                 // --- FIM DA LIMPEZA DO ZPL ---
 
-                this.masterLoteZplContent = cleanedZpl; 
-                this.zplContent = this.masterLoteZplContent; 
+                this.masterLoteZplContent = cleanedZpl;
+                this.zplContent = this.masterLoteZplContent;
                 this.retrievedLabelName = zplResponse.nameLabel || null; // Capture o nameLabel aqui
                 console.log('Nome da etiqueta recuperado:', this.retrievedLabelName);
                 console.log('ZPL mestre carregado e limpo para o lote:', this.zplContent); // ESTE É O LOG QUE QUEREMOS VER
@@ -258,8 +258,8 @@ export class ZebraComponent implements OnInit, OnDestroy {
   }
 
   onLoteInputChange(): void {
-    let value = this.loteNumberInput.replace(/[^0-9]/g, ''); 
-    
+    let value = this.loteNumberInput.replace(/[^0-9]/g, '');
+
     if (value.length > 4) {
       value = value.substring(0, 4) + '-' + value.substring(4);
     }
@@ -268,9 +268,9 @@ export class ZebraComponent implements OnInit, OnDestroy {
       value = value.substring(0, 11);
     }
     this.loteNumberInput = value;
-    
+
     if (this.loteNumberInput.length !== 11) {
-      this.bobinaNumberInput = ''; 
+      this.bobinaNumberInput = '';
     }
     this.renderLabel();
   }
@@ -293,15 +293,15 @@ export class ZebraComponent implements OnInit, OnDestroy {
   }
 
   onProductSelected(): void {
-    if (this.selectedProduct && this.selectedLoteLabel && this.masterLoteZplContent) { 
+    if (this.selectedProduct && this.selectedLoteLabel && this.masterLoteZplContent) {
       console.log('Produto selecionado para preenchimento de etiqueta:', this.selectedProduct);
 
-      let dynamicZpl = this.masterLoteZplContent; 
+      let dynamicZpl = this.masterLoteZplContent;
 
       const replaceField = (zpl: string, oldValue: string, newValue: string | number | null | undefined): string => {
         const escapedOldValue = String(oldValue).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(`(\\^FD)${escapedOldValue}(.*?\\^FS)`, 'g');
-        return zpl.replace(regex, `$1${newValue || ''}$2`); 
+        return zpl.replace(regex, `$1${newValue || ''}$2`);
       };
 
       // --- LÓGICA PARA PARSEAR O NOME DO PRODUTO E INFORMAÇÕES RELACIONADAS ---
@@ -347,26 +347,26 @@ export class ZebraComponent implements OnInit, OnDestroy {
       dynamicZpl = replaceField(dynamicZpl, `COR: `, `COR: ${productColor ? productColor.toUpperCase() : ''}`);
       dynamicZpl = replaceField(dynamicZpl, `LOTE: `, `LOTE: ${loteFromSearch}`);
       dynamicZpl = replaceField(dynamicZpl, `FABRICADO EM: `, `FABRICADO EM: ${fabricadoEmFromSearch}`);
-      dynamicZpl = replaceField(dynamicZpl, `BOBINA: `, `BOBINA: ${bobinaFromInput}`); 
+      dynamicZpl = replaceField(dynamicZpl, `BOBINA: `, `BOBINA: ${bobinaFromInput}`);
       dynamicZpl = replaceField(dynamicZpl, `DESIGNACAO: `, `DESIGNACAO: ${this.selectedProduct.designacao || ''}`);
       dynamicZpl = replaceField(dynamicZpl, `TENSAO: `, `TENSÃO: ${this.selectedProduct.tensao || ''}`);
       dynamicZpl = replaceField(dynamicZpl, `MASSA BRUTA: `, `MASSA BRUTA: ${this.selectedProduct.massa_bruta_kg_100m || ''} kg/100mt`);
       dynamicZpl = replaceField(dynamicZpl, `NORMA: `, `NORMA: ${this.selectedProduct.norma_aplicada || ''}`);
       dynamicZpl = replaceField(dynamicZpl, `COMPOSICAO: `, `COMPOSIÇÃO: ${this.selectedProduct.composicao || ''}`);
-      dynamicZpl = replaceField(dynamicZpl, `BOB NUM. SERIE: `, `BOB NUM. SÉRIE: ${this.selectedProduct.codigo || ''}`); 
+      dynamicZpl = replaceField(dynamicZpl, `BOB NUM. SERIE: `, `BOB NUM. SÉRIE: ${this.selectedProduct.codigo || ''}`);
       dynamicZpl = dynamicZpl.replace(/\^FD(COD_BARRAS|7898932971009)\^FS/g, `^FD${this.selectedProduct.cod_barras || ''}^FS`);
 
 
       this.zplContent = dynamicZpl;
       this.renderLabel();
     } else if (!this.selectedProduct && this.masterLoteZplContent) {
-        this.zplContent = this.masterLoteZplContent; 
+        this.zplContent = this.masterLoteZplContent;
         this.renderLabel();
         this.errorMessage = "Nenhum produto selecionado para preencher a etiqueta. Exibindo o ZPL base do lote.";
     }
     else {
       console.log('Nenhum produto ou lote selecionado. Revertendo ZPL para um estado base.');
-      this.zplContent = '^XA^FO50,50^A0N36,36^FDHello, Labelary!^FS^XZ'; 
+      this.zplContent = '^XA^FO50,50^A0N36,36^FDHello, Labelary!^FS^XZ';
       this.renderLabel();
       this.errorMessage = null;
     }
@@ -488,7 +488,7 @@ export class ZebraComponent implements OnInit, OnDestroy {
   }
 
   closePrintOptionsPopup(): void {
-    this.showPrintOptionsPopup = false; 
+    this.showPrintOptionsPopup = false;
   }
 
   setupBrowserPrint(): void {
@@ -613,13 +613,17 @@ export class ZebraComponent implements OnInit, OnDestroy {
 
     let zplToPrint = this.zplContent;
 
-    zplToPrint = zplToPrint.replace(/\^PQ\d+,\d+,\d+,[YN]/gi, '');
+    const quantityCommand = `^PQ${this.numberOfCopies}`;
 
-    if (!zplToPrint.trim().endsWith('^XZ')) {
-        zplToPrint = zplToPrint.trim() + '^XZ';
-    }
+    zplToPrint =  zplToPrint.replace(/\^PQ\d+/i, quantityCommand);
 
-    zplToPrint = zplToPrint.replace(/\^XZ$/, `^PQ${this.numberOfCopies},0,1,Y^XZ`);
+    // zplToPrint = zplToPrint.replace(/\^PQ\d+,\d+,\d+,[YN]/gi, '');
+
+    // if (!zplToPrint.trim().endsWith('^XZ')) {
+    //     zplToPrint = zplToPrint.trim() + '^XZ';
+    // }
+
+    // zplToPrint = zplToPrint.replace(/\^XZ$/, `^PQ${this.numberOfCopies},0,1,Y^XZ`);
 
     console.log('ZPL final (com cópias) a ser enviado para impressão:', zplToPrint);
 
@@ -637,7 +641,7 @@ export class ZebraComponent implements OnInit, OnDestroy {
         if (currentUserId) {
           const productCode = this.selectedProduct ? this.selectedProduct.codigo : null;
           const productName = this.selectedProduct ? this.selectedProduct.nome_produto: null;
-          const lotePrinted = this.selectedLoteLabel ? this.selectedLoteLabel.lote : this.loteNumberInput || null; 
+          const lotePrinted = this.selectedLoteLabel ? this.selectedLoteLabel.lote : this.loteNumberInput || null;
           const productNameToSave = this.retrievedLabelName || null;
           const historyEntry: PrintHistoryEntry = {
             userId: currentUserId,
