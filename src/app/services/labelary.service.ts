@@ -49,7 +49,8 @@ export class LabelaryService {
 
     const headers = new HttpHeaders({
       // Mude esta linha:
-      'Content-Type': 'application/x-www-form-urlencoded' // <-- ESSENCIAL: O Labelary espera texto puro aqui.
+      'Content-Type': 'application/x-www-form-urlencoded', // <-- ESSENCIAL: O Labelary espera texto puro aqui.
+      'X-Rotation': '90'
     });
 
     // O corpo da requisição (zpl) está correto sendo a string pura.

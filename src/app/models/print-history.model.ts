@@ -11,5 +11,5 @@ export interface PrintHistoryEntry {
   productName?: string | null;
   productLote?:string | null; // Nome do produto associado à etiqueta
   reprint:boolean
-  // zplContentSent?: string; // O ZPL exato que foi enviado (útil para depuração/auditoria)
+  zplContentSent?: string; // O ZPL exato que foi enviado (útil para depuração/auditoria)
 }

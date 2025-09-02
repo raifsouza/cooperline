@@ -4,12 +4,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/login';
+  private apiUrl = `${environment.apiUrl}/api/login`;
   private _userName = new BehaviorSubject<string | null>(null);
   private _userAccessLevel = new BehaviorSubject<number | null>(null);
   private _userId = new BehaviorSubject<string | null>(null); // MANTIDO: _userId

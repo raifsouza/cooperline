@@ -2,22 +2,20 @@
 export interface LabelEntry {
   id: number;
   file_name: string;        // Corresponde a 'file_name' na sua tabela
-  original_content: string; // Corresponde a 'original_content' na sua tabela
-  designacao?: string;
-  tensao?: string;
-  data_fab?: string;
-  pais_origem?: string;
-  validade?: string;
-  lote?: string;
-  registro?: string;
-  barcode?: string;
+  originalContent: string; // Corresponde a 'original_content' na sua tabela
   // REMOVIDO: dpmm, width_inch, height_inch, created_at, updated_at
   // porque não estavam na sua tabela conforme a imagem.
 }
 
 export interface ProductEntry {
+  id: number;
   codigo: string;
-  nome_produto: string;
+  nome_linha_1?: string | null;
+  nome_linha_2?: string | null;
+  nome_linha_3?: string | null;
+  nome_linha_4?: string | null;
+  nome_linha_5?: string | null;
+  nome_linha_6?: string | null;
   tamanho_padrao?: string;
   designacao?: string;
   tensao?: string;
@@ -29,6 +27,7 @@ export interface ProductEntry {
   pedido_oc?: string;
   retalho?: string;
   massa_liquida_kg_100m?: number;
+  label_id: number;
   // Adicione outras colunas da sua tabela product_entries se precisar delas no frontend
 }
 

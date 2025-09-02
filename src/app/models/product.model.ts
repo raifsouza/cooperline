@@ -2,7 +2,12 @@
 export interface Product {
   id?: number;
   codigo: string;
-  nomeProduto: string;
+  nomeLinha1?: string;
+  nomeLinha2?: string;
+  nomeLinha3?: string;
+  nomeLinha4?: string;
+  nomeLinha5?: string;
+  nomeLinha6?: string;
   tamanhoPadrao: string;
   designacao: string;
   tensao: string;

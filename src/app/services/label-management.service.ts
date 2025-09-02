@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, of } from 'rxjs';
 // Importe LoteEntry aqui. Certifique-se de que ele está definido em '../models/label-entry.model'
 import { LabelEntry, ProductEntry, LoteEntry } from '../models/label-entry.model'; 
+import { environment } from '../../environments/environment';
 
 
 // **NOVA INTERFACE DE RESPOSTA**
@@ -15,9 +16,7 @@ export interface ZPLResponse {
   providedIn: 'root'
 })
 export class LabelManagementService {
-  private apiUrl = 'http://localhost:3000/api/labels'; // Ajuste esta URL para o seu backend
-  private productsApiUrl = 'http://localhost:3000/api/products'; 
-  private loteApiUrl = 'http://localhost:3000/api/lote'; // 👈 **NOVO: URL para a API de lote**
+  private apiUrl = `${environment.apiUrl}/api`;
 
   constructor(private http: HttpClient) { }
 
@@ -26,7 +25,7 @@ export class LabelManagementService {
    * @returns Um Observable com um array de LabelEntry.
    */
   getAllLabels(): Observable<LabelEntry[]> {
-    return this.http.get<LabelEntry[]>(this.apiUrl);
+    return this.http.get<LabelEntry[]>(`${this.apiUrl}/labels`);
   }
 
   /**
@@ -34,7 +33,7 @@ export class LabelManagementService {
    * @returns Um Observable com um array de ProductEntry.
    */
   getAllProducts(): Observable<ProductEntry[]> {
-    return this.http.get<ProductEntry[]>(this.productsApiUrl);
+    return this.http.get<ProductEntry[]>(`${this.apiUrl}/products`);
   }
 
   /**
@@ -43,7 +42,7 @@ export class LabelManagementService {
    * @returns Um Observable com a etiqueta salva.
    */
   createLabel(label: LabelEntry): Observable<LabelEntry> {
-    return this.http.post<LabelEntry>(this.apiUrl, label);
+    return this.http.post<LabelEntry>(`${this.apiUrl}/labels`, label);
   }
 
   /**
@@ -53,7 +52,7 @@ export class LabelManagementService {
    * @returns Um Observable com a etiqueta atualizada.
    */
   updateLabel(id: number, label: LabelEntry): Observable<LabelEntry> {
-    return this.http.put<LabelEntry>(`${this.apiUrl}/${id}`, label);
+    return this.http.put<LabelEntry>(`${this.apiUrl}/labels/${id}`, label);
   }
 
   /**
@@ -62,7 +61,7 @@ export class LabelManagementService {
    * @returns Um Observable que completa quando a etiqueta é excluída.
    */
   deleteLabel(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/labels/${id}`);
   }
 
   /**
@@ -71,7 +70,7 @@ export class LabelManagementService {
    * @returns Um Observable com a etiqueta encontrada.
    */
   getLabelById(id: number): Observable<LabelEntry> {
-    return this.http.get<LabelEntry>(`${this.apiUrl}/${id}`);
+    return this.http.get<LabelEntry>(`${this.apiUrl}/labels/${id}`);
   }
 
   /**
@@ -79,27 +78,18 @@ export class LabelManagementService {
    * @param loteNumber O número do lote a ser buscado.
    * @returns Um Observable com um array de LoteEntry.
    */
-  // 👈 **NOVO MÉTODO**
+  // **NOVO MÉTODO**
   getLoteEntriesByLoteNumber(loteNumber: string): Observable<LoteEntry[]> {
     // A rota da API que você criou é '/api/lote', e você passará o lote como um query parameter.
-    return this.http.get<LoteEntry[]>(`${this.loteApiUrl}?lote=${loteNumber}`);
-  }
-  
-    /**
-   * NOVO MÉTODO: Obtém o conteúdo ZPL mestre para um dado número de lote.
-   * Este método é usado para buscar o template ZPL após a validação do lote-bobina.
-   * @param loteNumber O número do lote (ex: "0424-000038") para o qual buscar o ZPL mestre.
-   * @returns Um Observable com um objeto contendo o zplContent ou null se não encontrado.
-   */
-  getZPLByLoteNumber(loteNumber: string): Observable<ZPLResponse | null> {
-    const params = new HttpParams().set('lote', loteNumber);
-    // O tipo esperado pelo .get agora inclui nameLabel
-    return this.http.get<ZPLResponse>(`${this.apiUrl}/zpl-by-lote`, { params }).pipe(
-      map(response => response ? response : null),
-      catchError(this.handleError<ZPLResponse | null>('getZPLByLoteNumber', null))
-    );
+    return this.http.get<LoteEntry[]>(`${this.apiUrl}/lote?lote=${loteNumber}`);
   }
 
+  getServerTime(): Observable<{ currentTime: string }> {
+
+    const apiUrl = this.apiUrl
+    return this.http.get<{ currentTime: string }>(`${apiUrl}/time`);
+  }
+  
   /**
    * Método auxiliar para tratamento de erros em requisições HTTP.
    * @param operation Nome da operação que falhou.

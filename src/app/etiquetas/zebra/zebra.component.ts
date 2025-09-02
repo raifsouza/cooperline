@@ -55,6 +55,9 @@ export class ZebraComponent implements OnInit, OnDestroy {
 
   loteNumberInput: string = '';
   bobinaNumberInput: string = '';
+  tamanhoNumberInput: string = '';
+  pedidoOcNumberInput: string = '';
+  isMetragemEditable: boolean = false;
 
   isLoadingLoteLabels: boolean = false;
   loteLabelsErrorMessage: string | null = null;
@@ -119,7 +122,10 @@ export class ZebraComponent implements OnInit, OnDestroy {
       next: (data: ProductEntry[]) => {
         this.products = data;
         this.isLoadingProducts = false;
-        console.log('Produtos carregados com sucesso no frontend:', this.products);
+        
+        if (this.products && this.products.length > 0) {
+        console.log('Produtos carregados com sucesso no frontend:', this.products[0]);
+        }
       },
       error: (error: any) => {
         console.error('Erro ao carregar produtos no frontend:', error);
@@ -130,132 +136,28 @@ export class ZebraComponent implements OnInit, OnDestroy {
     });
   }
 
-  customSearchFn(term: string, item: ProductEntry) {
-    term = term.toLowerCase();
-    // Retorna true se o termo de busca estiver no código ou no nome do produto
-    return item.codigo.toLowerCase().includes(term) ||
-           item.nome_produto.toLowerCase().includes(term);
-  }
+  customSearchFn(term: string, item: ProductEntry): boolean {
+  const searchTerm = term.toLowerCase();
 
-   searchLabelsByLote(): void {
-    // A validação de entrada ainda inclui a bobina, pois ela é importante para a exibição/contexto,
-    // mas o filtro no frontend pela bobina foi removido.
-    if (!this.isSearchButtonEnabled()) {
-      this.loteLabelsErrorMessage = 'Por favor, preencha o Lote (11 dígitos) e a Bobina (1 dígito) corretamente.';
-      this.searchedLabels = [];
-      this.selectedLoteLabel = null;
-      this.masterLoteZplContent = null;
-      this.zplContent = '';
-      this.renderLabel();
-      return;
-    }
+  const codeMatch = item.codigo.toLowerCase().includes(searchTerm);
+  if (codeMatch) return true;
 
-    this.isLoadingLoteLabels = true;
-    this.isSelectedProduct = true;
-    this.loteLabelsErrorMessage = null;
-    this.searchedLabels = [];
-    this.selectedLoteLabel = null;
-    this.masterLoteZplContent = null;
-    this.zplContent = '';
+  // Constrói uma única string com todas as linhas do nome para a busca
+  const fullName = [
+    item.nome_linha_1,
+    item.nome_linha_2,
+    item.nome_linha_3,
+    item.nome_linha_4,
+    item.nome_linha_5,
+    item.nome_linha_6
+  ]
+  .filter(line => !!line) // Remove linhas vazias
+  .join(' ')
+  .toLowerCase();
 
-    // Primeiro, faz a busca pelo Lote (sem a bobina no critério de busca do backend,
-    // apenas para verificar se o lote existe e pegar uma entrada como 'selectedLoteLabel')
-    // Assumindo que getLoteEntriesByLoteNumber pode receber apenas o lote ou o lote completo.
-    // Se o backend espera o lote completo (lote + bobina), então a primeira chamada continua com `loteComplete`.
-    // Mas o filtro *no frontend* `filteredByBobina` é que foi removido.
-    const loteComplete = this.loteNumberInput + '-' + this.bobinaNumberInput;
-    console.log('Iniciando busca por lote completo:', loteComplete); // LOG DE DEBUG 1
-
-    this.labelManagementService.getLoteEntriesByLoteNumber(loteComplete).subscribe({
-      next: (loteEntries: LoteEntry[]) => {
-        this.searchedLabels = loteEntries;
-        this.isLoadingLoteLabels = false;
-        console.log('Resultado da busca por loteEntries:', loteEntries); // LOG DE DEBUG 2
-
-        if (loteEntries.length > 0) {
-          this.selectedLoteLabel = loteEntries[0];
-          console.log('Etiqueta(s) de lote encontrada(s):', this.selectedLoteLabel); // LOG DE DEBUG 3
-          console.log('Buscando ZPL para o lote:', this.loteNumberInput); // LOG DE DEBUG 4
-
-          this.labelManagementService.getZPLByLoteNumber(this.loteNumberInput).subscribe({
-             next: (zplResponse: ZPLResponse | null) => {
-              console.log('Resposta do getZPLByLoteNumber:', zplResponse); // LOG DE DEBUG 5
-
-              if (zplResponse && zplResponse.zplContent) {
-                console.log('zplResponse e zplResponse.zplContent são válidos.'); // LOG DE DEBUG 6
-                let cleanedZpl = zplResponse.zplContent;
-
-                // --- INÍCIO DA LIMPEZA DO ZPL ---
-
-                cleanedZpl = cleanedZpl.replace(/^[\u0000-\u001F\u007F-\u009F]*/, '');
-
-                const xaIndex = cleanedZpl.indexOf('^XA');
-                if (xaIndex !== -1) {
-                    cleanedZpl = cleanedZpl.substring(xaIndex);
-                } else {
-                    console.error('ZPL retornado não contém ^XA. Conteúdo original:', zplResponse.zplContent); // LOG DE ERRO
-                    this.loteLabelsErrorMessage = 'ZPL template inválido: falta ^XA.';
-                    this.zplContent = '';
-                    this.renderLabel();
-                    return;
-                }
-
-                if (!cleanedZpl.endsWith('^XZ')) {
-                    cleanedZpl = cleanedZpl.trim() + '^XZ';
-                }
-
-                cleanedZpl = cleanedZpl.replace(/[\r\n]+/g, '');
-                cleanedZpl = cleanedZpl.trim();
-
-                // --- FIM DA LIMPEZA DO ZPL ---
-
-                this.masterLoteZplContent = cleanedZpl;
-                this.zplContent = this.masterLoteZplContent;
-                this.retrievedLabelName = zplResponse.nameLabel || null; // Capture o nameLabel aqui
-                console.log('Nome da etiqueta recuperado:', this.retrievedLabelName);
-                console.log('ZPL mestre carregado e limpo para o lote:', this.zplContent); // ESTE É O LOG QUE QUEREMOS VER
-
-                if (this.selectedProduct) {
-                  this.onProductSelected();
-                } else {
-                  this.loteLabelsErrorMessage = 'Lote e Bobina encontrados, ZPL carregado. Por favor, selecione um produto para preencher a etiqueta.';
-                  this.renderLabel();
-                }
-              } else {
-                console.warn('Condição if (zplResponse && zplResponse.zplContent) falhou.'); // LOG DE DEBUG 7
-                console.warn('Valor de zplResponse:', zplResponse); // LOG DE DEBUG 8
-                this.loteLabelsErrorMessage = 'Lote e Bobina encontrados, mas nenhum ZPL template mestre associado a este lote.';
-                this.zplContent = '';
-                this.renderLabel();
-              }
-            },
-            error: (zplError: any) => {
-              console.error('ERRO NO getZPLByLoteNumber (segunda busca):', zplError); // LOG DE DEBUG 9
-              this.loteLabelsErrorMessage = 'Falha ao buscar o template ZPL mestre para este lote. Tente novamente.';
-              this.zplContent = '';
-              this.renderLabel();
-            }
-          });
-
-        } else {
-          console.warn('Nenhuma etiqueta encontrada para o número de lote especificado (primeira busca).'); // LOG DE DEBUG 10
-          this.loteLabelsErrorMessage = 'Nenhuma etiqueta encontrada para o número de lote especificado.';
-          this.zplContent = '';
-          this.renderLabel();
-        }
-      },
-      error: (error: any) => {
-        console.error('ERRO NA PRIMEIRA BUSCA (getLoteEntriesByLoteNumber):', error); // LOG DE DEBUG 11
-        this.loteLabelsErrorMessage = 'Falha ao buscar etiquetas para este lote. Tente novamente.';
-        this.isLoadingLoteLabels = false;
-        this.searchedLabels = [];
-        this.selectedLoteLabel = null;
-        this.masterLoteZplContent = null;
-        this.zplContent = '';
-        this.renderLabel();
-      }
-    });
-  }
+  const nameMatch = fullName.includes(searchTerm);
+  return nameMatch;
+}
 
   onLoteInputChange(): void {
     let value = this.loteNumberInput.replace(/[^0-9]/g, '');
@@ -269,107 +171,180 @@ export class ZebraComponent implements OnInit, OnDestroy {
     }
     this.loteNumberInput = value;
 
-    if (this.loteNumberInput.length !== 11) {
-      this.bobinaNumberInput = '';
-    }
-    this.renderLabel();
+    if (this.loteNumberInput.length !== 11)
+    this.updatePreview();
   }
 
   onBobinaInputChange(): void {
     let value = this.bobinaNumberInput.replace(/[^0-9]/g, '');
     if (value.length > 1) {
-      value = value.substring(0, 1);
+      value = value.substring(0, 5);
     }
     this.bobinaNumberInput = value;
-    this.renderLabel();
+    this.updatePreview();
   }
 
-  isBobinaInputEnabled(): boolean {
+  // onTamanhoInputChange(): void {
+  //   let value = this.tamanhoNumberInput.replace(/[^0-9]/g, '');
+  //   if(value.length > 3) {
+  //     value = value.substring(0, 3);
+  //   }
+  //   this.tamanhoNumberInput = value;
+  //   this.updatePreview();
+  // }
+
+  onPedidoOcInputChange(): void {
+    let value = this.pedidoOcNumberInput.replace(/[^0-9]/g, '');
+    if(value.length > 1) {
+      value = value.substring(0, 8);
+    }
+    this.pedidoOcNumberInput = value;
+    this.updatePreview();
+  }
+
+  isLabelInputEnabled(): boolean {
     return this.loteNumberInput.length === 11;
   }
 
   isSearchButtonEnabled(): boolean {
-    return this.loteNumberInput.length === 11 && this.bobinaNumberInput.length === 1 && !this.isLoadingLoteLabels;
+    return this.loteNumberInput.length === 11 && !this.isLoadingLoteLabels;
   }
 
-  onProductSelected(): void {
-    if (this.selectedProduct && this.selectedLoteLabel && this.masterLoteZplContent) {
-      console.log('Produto selecionado para preenchimento de etiqueta:', this.selectedProduct);
+searchLabelsByLote(): void {
+  if (!this.isSearchButtonEnabled()) {
+    this.loteLabelsErrorMessage = 'Por favor, preencha o Lote corretamente.';
+    // Limpa estados antigos
+    this.selectedLoteLabel = null;
+    this.masterLoteZplContent = null;
+    this.zplContent = '';
+    this.renderLabel();
+    return;
+  }
 
-      let dynamicZpl = this.masterLoteZplContent;
+  this.isLoadingLoteLabels = true;
+  this.loteLabelsErrorMessage = null;
+  const loteComplete = this.loteNumberInput
 
-      const replaceField = (zpl: string, oldValue: string, newValue: string | number | null | undefined): string => {
-        const escapedOldValue = String(oldValue).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(\\^FD)${escapedOldValue}(.*?\\^FS)`, 'g');
-        return zpl.replace(regex, `$1${newValue || ''}$2`);
-      };
-
-      // --- LÓGICA PARA PARSEAR O NOME DO PRODUTO E INFORMAÇÕES RELACIONADAS ---
-      let productNamePart1 = '';
-      let productNamePart2 = '';
-      let productNamePart3 = '';
-      let productBitola = this.selectedProduct.tamanho_padrao || '';
-      let productColor = '';
-
-      const fullProductName = this.selectedProduct.nome_produto || '';
-      const parts = fullProductName.split(' ');
-
-      if (parts.length > 0) {
-          productNamePart1 = parts.slice(0, 3).join(' ');
-          productNamePart2 = parts.slice(3, 6).join(' ');
-          productNamePart3 = parts.slice(6, parts.length -1).join(' ');
-
-          const lastPart = parts[parts.length - 1];
-          if (lastPart && (lastPart.length === 2 || lastPart.length === 3) && lastPart.toUpperCase() === lastPart) {
-              const colorMap: { [key: string]: string } = {
-                  'PT': 'PRETO', 'AZ': 'AZUL', 'VM': 'VERMELHO', 'VD': 'VERDE', 'BR': 'BRANCO', 'AM': 'AMARELO'
-              };
-              productColor = colorMap[lastPart.toUpperCase()] || lastPart;
-              if (productNamePart3.endsWith(lastPart)) {
-                  productNamePart3 = productNamePart3.substring(0, productNamePart3.length - lastPart.length).trim();
-              }
-          } else {
-              productNamePart3 = parts.slice(6).join(' ');
-          }
+  // A chamada ao serviço agora só valida se o lote foi encontrado
+  this.labelManagementService.getLoteEntriesByLoteNumber(loteComplete).subscribe({
+    next: (loteEntries) => {
+      this.isLoadingLoteLabels = false;
+      if (loteEntries.length > 0) {
+        this.selectedLoteLabel = loteEntries[0]; // Guarda os dados do lote encontrado
+        this.loteLabelsErrorMessage = 'Lote validado com sucesso! Agora, por favor, selecione um produto.';
+        console.log('Lote validado:', this.selectedLoteLabel);
+        this.isSelectedProduct = true;
+        // AÇÃO TERMINA AQUI. Não buscamos mais o ZPL.
+      } else {
+        this.loteLabelsErrorMessage = 'Nenhum lote encontrado com este número.';
+        this.selectedLoteLabel = null;
       }
-
-      const loteFromSearch = this.selectedLoteLabel.lote;
-      const fabricadoEmFromSearch = new Date(this.selectedLoteLabel.fabricadoEm).toLocaleDateString('pt-BR');
-      const bobinaFromInput = this.bobinaNumberInput || '';
-
-
-      // --- SUBSTITUIÇÕES PARA OS CAMPOS DAS ETIQUETAS ---
-      dynamicZpl = replaceField(dynamicZpl, `PRODUTO: `, `PRODUTO: ${this.selectedProduct.nome_produto || ''}`);
-      dynamicZpl = replaceField(dynamicZpl, `ITEM1: `, `ITEM1: ${productNamePart1}`);
-      dynamicZpl = replaceField(dynamicZpl, `ITEM2: `, `ITEM2: ${productNamePart2}`);
-      dynamicZpl = replaceField(dynamicZpl, `ITEM3: `, `ITEM3: ${productNamePart3}`);
-      dynamicZpl = replaceField(dynamicZpl, `BITOLA: `, `BITOLA: ${productBitola}`);
-      dynamicZpl = replaceField(dynamicZpl, `COR: `, `COR: ${productColor ? productColor.toUpperCase() : ''}`);
-      dynamicZpl = replaceField(dynamicZpl, `LOTE: `, `LOTE: ${loteFromSearch}`);
-      dynamicZpl = replaceField(dynamicZpl, `FABRICADO EM: `, `FABRICADO EM: ${fabricadoEmFromSearch}`);
-      dynamicZpl = replaceField(dynamicZpl, `BOBINA: `, `BOBINA: ${bobinaFromInput}`);
-      dynamicZpl = replaceField(dynamicZpl, `DESIGNACAO: `, `DESIGNACAO: ${this.selectedProduct.designacao || ''}`);
-      dynamicZpl = replaceField(dynamicZpl, `TENSAO: `, `TENSÃO: ${this.selectedProduct.tensao || ''}`);
-      dynamicZpl = replaceField(dynamicZpl, `MASSA BRUTA: `, `MASSA BRUTA: ${this.selectedProduct.massa_bruta_kg_100m || ''} kg/100mt`);
-      dynamicZpl = replaceField(dynamicZpl, `NORMA: `, `NORMA: ${this.selectedProduct.norma_aplicada || ''}`);
-      dynamicZpl = replaceField(dynamicZpl, `COMPOSICAO: `, `COMPOSIÇÃO: ${this.selectedProduct.composicao || ''}`);
-      dynamicZpl = replaceField(dynamicZpl, `BOB NUM. SERIE: `, `BOB NUM. SÉRIE: ${this.selectedProduct.codigo || ''}`);
-      dynamicZpl = dynamicZpl.replace(/\^FD(COD_BARRAS|7898932971009)\^FS/g, `^FD${this.selectedProduct.cod_barras || ''}^FS`);
-
-
-      this.zplContent = dynamicZpl;
-      this.renderLabel();
-    } else if (!this.selectedProduct && this.masterLoteZplContent) {
-        this.zplContent = this.masterLoteZplContent;
-        this.renderLabel();
-        this.errorMessage = "Nenhum produto selecionado para preencher a etiqueta. Exibindo o ZPL base do lote.";
+    },
+    error: (err) => {
+      this.isLoadingLoteLabels = false;
+      this.loteLabelsErrorMessage = 'Erro ao buscar o lote.';
+      this.selectedLoteLabel = null;
+      console.error(err);
     }
-    else {
-      console.log('Nenhum produto ou lote selecionado. Revertendo ZPL para um estado base.');
-      this.zplContent = '^XA^FO50,50^A0N36,36^FDHello, Labelary!^FS^XZ';
-      this.renderLabel();
-      this.errorMessage = null;
+  });
+}
+
+
+onProductSelected(): void {
+  // Limpa o ZPL anterior
+  console.log('Frontend - Objeto do produto selecionado:', this.selectedProduct);
+  this.masterLoteZplContent = null;
+  this.zplContent = '';
+  this.errorMessage = null;
+
+  if (!this.selectedProduct || !this.selectedProduct.label_id) {
+    this.renderLabel(); // Limpa a pré-visualização
+    if (this.selectedProduct) {
+      this.errorMessage = 'Este produto não tem um layout de etiqueta associado.';
     }
+    return;
+  }
+
+  console.log(`Produto selecionado. Buscando layout com ID: ${this.selectedProduct.label_id}`);
+
+  this.labelManagementService.getLabelById(this.selectedProduct.label_id).subscribe({
+    next: (labelEntry) => {
+      if (labelEntry && labelEntry.originalContent) {
+        this.masterLoteZplContent = labelEntry.originalContent;
+        // Chama a função que cuida da pré-visualização
+        if (this.selectedProduct?.retalho?.toLowerCase() === 'sim') {
+            this.isMetragemEditable = true;
+            this.tamanhoNumberInput = ''; // Limpa para o usuário digitar
+          } else {
+            this.isMetragemEditable = false;
+            // Usa o tamanho padrão do produto como valor
+            this.tamanhoNumberInput = this.selectedProduct?.tamanho_padrao || '100';
+          }
+
+          this.updatePreview(); // Chama a atualização da tela
+        } else {
+          // ...
+        }
+      },
+      error: (err) => {
+        // ...
+      }
+    });
+  }
+
+  private generateFinalZpl(printDate: Date): string {
+    if (!this.selectedProduct || !this.masterLoteZplContent) {
+      return '';
+    }
+    
+    let zplFinal = this.masterLoteZplContent;
+
+    const replacements: { [key: string]: any } = {
+      // Dados do lote que o usuário digitou
+      '{{LOTE}}': this.loteNumberInput,
+      '{{BOB_NUM_SERIE}}': this.bobinaNumberInput,
+      '{{PEDIDO_OC}}': this.pedidoOcNumberInput,
+      
+      // USA A DATA QUE FOI PASSADA COMO PARÂMETRO
+      '{{DATA_FAB}}': printDate.toLocaleDateString('pt-BR'),
+
+      // Dados que vêm do produto selecionado do banco
+      '{{NOME_LINHA_1}}': this.selectedProduct.nome_linha_1, 
+      '{{NOME_LINHA_2}}': this.selectedProduct.nome_linha_2, 
+      '{{NOME_LINHA_3}}': this.selectedProduct.nome_linha_3, 
+      '{{NOME_LINHA_4}}': this.selectedProduct.nome_linha_4, 
+      '{{NOME_LINHA_5}}': this.selectedProduct.nome_linha_5, 
+      '{{NOME_LINHA_6}}': this.selectedProduct.nome_linha_6, 
+    // ...
+      '{{COD_BARRAS}}': this.selectedProduct.cod_barras,
+      '{{SECAO}}': `${this.tamanhoNumberInput} m`,
+      '{{TENSAO}}': this.selectedProduct.tensao,
+      '{{DESIGNACAO}}': this.selectedProduct.designacao,
+      '{{MASSA_BRUTA}}': `${this.selectedProduct.massa_bruta_kg_100m} kg/100mt`,
+      '{{MASSA_LIQUIDA}}': `${this.selectedProduct.massa_liquida_kg_100m} kg/100mt`,
+      '{{NORMA}}': this.selectedProduct.norma_aplicada,
+      '{{COMPOSICAO}}': this.selectedProduct.composicao,
+      '{{NUMERO_REGISTRO}}': this.selectedProduct.numero_registro,
+    };
+
+    console.log("Frontend - Dados FINAIS para substituição:", replacements);
+
+    const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    for (const placeholder in replacements) {
+      const valor = replacements[placeholder] || '';
+      const regex = new RegExp(escapeRegex(placeholder), 'g');
+      zplFinal = zplFinal.replace(regex, valor);
+    }
+
+    // Esta função apenas RETORNA o ZPL, ela não atualiza a tela.
+    return zplFinal;
+  }
+
+  public updatePreview(): void {
+  // Para a pré-visualização, usamos a data local (new Date())
+  this.zplContent = this.generateFinalZpl(new Date());
+  this.renderLabel(); // Chama a renderização do Labelary
   }
 
   renderLabel(): void {
@@ -459,20 +434,6 @@ export class ZebraComponent implements OnInit, OnDestroy {
       this.showReprintConfirmationPopup = false; // Garanta que este popup esteja fechado
       this.reprint = false;
     }
-  }
-
-
-
-
-  getBobinaFromLote(fullLote: string): string {
-    if (!fullLote) {
-      return '';
-    }
-    const parts = fullLote.split('-');
-    if (parts.length >= 3 && Number.isInteger(Number(parts[parts.length - 1]))) {
-      return parts[parts.length - 1];
-    }
-    return '';
   }
 
     // Funções para lidar com o popup de reimpressão
@@ -598,86 +559,90 @@ export class ZebraComponent implements OnInit, OnDestroy {
   }
 
   printZebraDirectly(): void {
+  this.closePrintOptionsPopup();
 
-    if (!this.selectedPrinter) {
-      alert('Nenhuma impressora Zebra selecionada. Por favor, selecione uma impressora ou verifique a conexão.');
-      console.error('Nenhuma impressora Zebra selecionada.');
-      return;
-    }
-
-    if (!this.zplContent) {
-      alert('Nenhum conteúdo ZPL para imprimir.');
-      console.error('Nenhum ZPL para imprimir.');
-      return;
-    }
-
-    let zplToPrint = this.zplContent;
-
-    const quantityCommand = `^PQ${this.numberOfCopies}`;
-
-    zplToPrint =  zplToPrint.replace(/\^PQ\d+/i, quantityCommand);
-
-    // zplToPrint = zplToPrint.replace(/\^PQ\d+,\d+,\d+,[YN]/gi, '');
-
-    // if (!zplToPrint.trim().endsWith('^XZ')) {
-    //     zplToPrint = zplToPrint.trim() + '^XZ';
-    // }
-
-    // zplToPrint = zplToPrint.replace(/\^XZ$/, `^PQ${this.numberOfCopies},0,1,Y^XZ`);
-
-    console.log('ZPL final (com cópias) a ser enviado para impressão:', zplToPrint);
-
-    const printOptions = {};
-
-   this.selectedPrinter.send(
-      zplToPrint,
-      (success: any) => {
-        console.log('ZPL enviado com sucesso para a impressora Zebra!', success);
-        alert('Etiqueta enviada para a impressora Zebra com sucesso!');
-
-        const currentUserId = this.authService.getUserId();
-        const currentUserName = this.authService.getUserName();
-
-        if (currentUserId) {
-          const productCode = this.selectedProduct ? this.selectedProduct.codigo : null;
-          const productName = this.selectedProduct ? this.selectedProduct.nome_produto: null;
-          const lotePrinted = this.selectedLoteLabel ? this.selectedLoteLabel.lote : this.loteNumberInput || null;
-          const productNameToSave = this.retrievedLabelName || null;
-          const historyEntry: PrintHistoryEntry = {
-            userId: currentUserId,
-            userName: currentUserName || 'Nome não disponível',
-            timestamp: new Date().toISOString(),
-            printerName: this.selectedPrinter.name,
-            copies: this.numberOfCopies,
-            productName: productName,
-            productCode: productCode,
-            labelName: productNameToSave,
-            productLote: lotePrinted,
-            reprint: this.reprint,
-          };
-
-          this.printHistoryApiService.savePrintEntry(historyEntry).subscribe({
-            next: (response) => {
-              console.log('Histórico de impressão salvo no banco de dados:', response);
-            },
-            error: (apiError) => {
-              console.error('Erro ao salvar histórico no banco de dados:', apiError);
-            }
-          });
-        } else {
-          console.warn('Não foi possível salvar o histórico de impressão: ID de usuário não encontrado.');
-        }
-      },
-      (error: any) => {
-        console.error('Erro ao enviar ZPL para a impressora Zebra:', error);
-        this.errorMessage = `Falha ao imprimir na Zebra: ${error.message || error}`;
-        alert('Erro ao imprimir na impressora Zebra. Verifique o console para detalhes.');
-      },
-      printOptions
-    );
-
-     this.closePrintOptionsPopup();
+  if (!this.selectedPrinter) {
+    alert('Nenhuma impressora Zebra selecionada.');
+    return;
   }
+  if (!this.selectedProduct || !this.masterLoteZplContent) {
+    alert('Por favor, valide um lote e selecione um produto antes de imprimir.');
+    return;
+  }
+
+  // busca data e hora atual do servidor
+  this.labelManagementService.getServerTime().subscribe({
+    next: (timeResponse) => {
+      const serverDate = new Date(timeResponse.currentTime);
+
+      
+      let zplToPrint = this.generateFinalZpl(serverDate);
+      
+      if (!zplToPrint) {
+        alert('Falha ao gerar ZPL com os dados. Verifique os placeholders.');
+        return;
+      }
+
+      // quantidade de cópias
+      const quantityCommand = `^PQ${this.numberOfCopies}`;
+      zplToPrint = zplToPrint.replace(/\^PQ\d+/i, quantityCommand);
+
+      console.log('ZPL final (com cópias) a ser enviado para impressão:', zplToPrint);
+      
+      // envia o zpl para a impressora
+      const printOptions = {};
+      this.selectedPrinter.send(zplToPrint,
+        (success: any) => {
+          console.log('ZPL enviado com sucesso!', success);
+          alert('Etiqueta enviada para a impressora com sucesso!');
+          this.saveHistory(zplToPrint); // Chama a função para salvar o histórico
+        },
+        (error: any) => {
+          console.error('Erro ao enviar ZPL para a impressora:', error);
+          alert('Erro ao imprimir na impressora Zebra.');
+        }
+      );
+    },
+    error: (err) => {
+      console.error('Erro ao buscar a hora do servidor:', err);
+      alert('Não foi possível obter a hora do servidor. A impressão foi cancelada.');
+    }
+  });
+}
+
+  private saveHistory(printedZpl: string): void {
+  const currentUserId = this.authService.getUserId();
+  const currentUserName = this.authService.getUserName();
+
+  if (currentUserId && this.selectedProduct) {
+    const fullProductNameForHistory = [
+      this.selectedProduct.nome_linha_1, this.selectedProduct.nome_linha_2,
+      this.selectedProduct.nome_linha_3, this.selectedProduct.nome_linha_4,
+      this.selectedProduct.nome_linha_5, this.selectedProduct.nome_linha_6,
+    ].filter(Boolean).join(' ');
+
+    const historyEntry: PrintHistoryEntry = {
+      userId: currentUserId,
+      userName: currentUserName || 'Nome não disponível',
+      timestamp: new Date().toISOString(),
+      printerName: this.selectedPrinter.name,
+      copies: this.numberOfCopies,
+      productName: fullProductNameForHistory,
+      productCode: this.selectedProduct.codigo,
+      labelName: this.retrievedLabelName || 'N/A',
+      productLote: this.selectedLoteLabel?.lote || this.loteNumberInput,
+      reprint: this.reprint,
+      zplContentSent: printedZpl // Salvando o ZPL exato que foi impresso
+    };
+
+    this.printHistoryApiService.savePrintEntry(historyEntry).subscribe({
+      next: (response) => console.log('Histórico de impressão salvo.', response),
+      error: (apiError) => console.error('Erro ao salvar histórico.', apiError)
+    });
+  } else {
+    console.warn('Não foi possível salvar o histórico: ID de usuário ou produto selecionado não encontrado.');
+  }
+}
 
   handleToggleSidenavRequest(): void {
     this.isSidenavVisible = !this.isSidenavVisible;

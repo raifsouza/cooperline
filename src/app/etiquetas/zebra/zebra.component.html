@@ -11,13 +11,6 @@
           maxlength="11" placeholder="Ex: 0424-000038" title="O lote deve ter exatamente 11 dígitos" />
       </div>
 
-      <div class="input-field-wrapper">
-        <label for="bobinaNumberInput">Número da Bobina:</label>
-        <input type="text" id="bobinaNumberInput" [(ngModel)]="bobinaNumberInput" (input)="onBobinaInputChange()"
-          [disabled]="!isBobinaInputEnabled()" maxlength="1" pattern="\d{1}" placeholder="1 dígito"
-          title="Número da bobina (1 dígito)" />
-      </div>
-
       <button class="search-button" (click)="searchLabelsByLote()" [disabled]="!isSearchButtonEnabled()"
         title="Buscar Lote e Produto">
         <i class="material-icons">search</i>
@@ -40,10 +33,10 @@
         [clearable]="true" placeholder="Selecione ou busque um Produto" (change)="onProductSelected()"
         [notFoundText]="isLoadingProducts ? 'Carregando produtos...' : (products.length === 0 ? 'Nenhum produto encontrado.' : 'Nenhum produto corresponde à busca.')">
         <ng-template ng-option-tmp let-item="item">
-          {{ item.codigo }} - {{ item.nome_produto }}
+          {{ item.codigo }} - {{ [item.nome_linha_1, item.nome_linha_2, item.nome_linha_3, item.nome_linha_4, item.nome_linha_5, item.nome_linha_6] }}
         </ng-template>
         <ng-template ng-label-tmp let-item="item">
-          {{ item.codigo }} - {{ item.nome_produto }}
+          {{ item.codigo }} - {{ [item.nome_linha_1, item.nome_linha_2, item.nome_linha_3, item.nome_linha_4, item.nome_linha_5, item.nome_linha_6] }}
         </ng-template>
       </ng-select>
       <small *ngIf="!isLoadingProducts && products.length > 0">Selecione um produto para visualizar seus
@@ -57,7 +50,30 @@
       </div>
     </div>
 
-    <div class="parameters">
+    <div class="search-input-container">
+      <div class="input-field-wrapper">
+        <label for="bobinaNumberInput">Nº Bobina/Série:</label>
+        <input type="text" id="bobinaNumberInput" [(ngModel)]="bobinaNumberInput" (input)="updatePreview()"
+          [disabled]="!isSelectedProduct" maxlength="5" pattern="/d{5}" placeholder="Digite o número da Bobina/Série"
+          title="Número de bobina (5 dígitos)"/>
+      </div>
+
+      <div class="input-field-wrapper">
+        <label for="tamanhoNumberInput">Tamanho/Metragem:</label>
+        <input type="number" id="tamanhoNumberInput" [(ngModel)]="tamanhoNumberInput" (ngModelChange)="updatePreview()"
+          [disabled]="!isMetragemEditable" maxlength="3" pattern="/d{1}" placeholder="{{ isMetragemEditable ? 'Digite a metragem' : 'Padrão do produto' }}"
+          tittle="Tamanho do produto (até 3 dígitos)"/>
+      </div>
+
+      <div class="input-field-wrapper">
+        <label for="pedidoOcNumberInput"> Pedido OC:</label>
+        <input type="text" id="pedidoOcNumberInput" [(ngModel)]="pedidoOcNumberInput" (input)="updatePreview()"
+          [disabled]="!isSelectedProduct" maxlength="8" pattern="/d{1}" placeholder="Digite o número da OC do Pedido"
+          tittle="Pedido OC"/>
+      </div>
+    </div>
+
+    <!-- <div class="parameters">
       <div class="param-group">
         <label for="dpmm">DPI (Pontos por mm):</label>
         <select id="dpmm" [(ngModel)]="dpmm">
@@ -74,13 +90,12 @@
         <label for="height">Altura (polegadas):</label>
         <input type="number" id="height" [(ngModel)]="height" min="0.1" step="0.1">
       </div>
-    </div>
+    </div> -->
 
     <div class="actions">
       <button (click)="renderLabel()" [disabled]="isLoading || !zplContent">
         {{ isLoading ? 'Renderizando...' : 'Renderizar Etiqueta' }}
       </button>
-      <button (click)="downloadLabel()" [disabled]="!renderedLabelUrl">Baixar Etiqueta</button>
       <button class="primary-print-button" (click)="openPrintOptionsPopup()"
         [disabled]="!renderedLabelUrl || !selectedProduct">
         Imprimir Etiqueta
@@ -118,20 +133,19 @@
   <div class="print-options-popup">
     <h2>Escolha a Opção de Impressão</h2>
 
-    <div class="print-option-group">
+    <!-- <div class="print-option-group">
       <h3>Impressora Padrão (Sistema Operacional)</h3>
       <p>Imprime a pré-visualização renderizada (imagem/PDF) usando o driver de impressão padrão do seu sistema. Isso
         abre a caixa de diálogo de impressão do navegador.</p>
       <button (click)="printRenderedImage()" [disabled]="!renderedLabelUrl">
         Imprimir via Driver Padrão
       </button>
-    </div>
+    </div> -->
 
     <hr>
     <div class="print-option-group zebra-printer-options">
-      <h3>Impressora Zebra (ZPL Direto)</h3>
-      <p>Envie o ZPL diretamente para uma impressora Zebra conectada localmente via Zebra Browser Print.</p>
-
+      <h3>Impressora Zebra</h3>
+      
       <div *ngIf="isConnectingToPrinter && !selectedPrinter" class="loading-spinner">
         Conectando à impressora...
         <p>{{ printerStatus }}</p>

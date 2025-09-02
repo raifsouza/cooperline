@@ -4,12 +4,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, of } from 'rxjs';
 import { PrintHistoryEntry } from '../models/print-history.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PrintHistoryApiService {
-  private apiUrl = 'http://localhost:3000/api/print-history';
+  private apiUrl = `${environment.apiUrl}/api/print-history`;
 
   constructor(private http: HttpClient) { }
 

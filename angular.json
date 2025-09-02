@@ -49,6 +49,12 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
@@ -61,7 +67,14 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": true,
+              "aot": true,
+              "buildOptimizer": true,
+              "vendorChunk": true,
+              "commonChunk": true,
+              "namedChunks": false,
+              "sourceMap": false
             },
             "development": {
               "optimization": false,
