@@ -18,7 +18,8 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   userAccessLevel: number | null = null;
   private authSubscription: Subscription | null = null;
-  public isSidenavSubmenuOpen: boolean = false; // propriedade para o estado do submenu
+  public isSidenavSubmenuOpen: boolean = false;
+  public isAdminSubmenuOpen: boolean = false;
 
   constructor(private authService: AuthService) { }
 
@@ -34,6 +35,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
       this.isSidenavSubmenuOpen = false;
     }
   }
+  
 
   // fechar a sidenav (botão interno e backdrop)
   onClose(): void {
@@ -49,6 +51,10 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   toggleSidenavSubmenu(): void {
     this.isSidenavSubmenuOpen = !this.isSidenavSubmenuOpen;
+  }
+
+  toggleAdminSubmenu(): void {
+    this.isAdminSubmenuOpen = !this.isAdminSubmenuOpen;
   }
 
   ngOnDestroy(): void {

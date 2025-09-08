@@ -184,15 +184,6 @@ export class ZebraComponent implements OnInit, OnDestroy {
     this.updatePreview();
   }
 
-  // onTamanhoInputChange(): void {
-  //   let value = this.tamanhoNumberInput.replace(/[^0-9]/g, '');
-  //   if(value.length > 3) {
-  //     value = value.substring(0, 3);
-  //   }
-  //   this.tamanhoNumberInput = value;
-  //   this.updatePreview();
-  // }
-
   onPedidoOcInputChange(): void {
     let value = this.pedidoOcNumberInput.replace(/[^0-9]/g, '');
     if(value.length > 1) {

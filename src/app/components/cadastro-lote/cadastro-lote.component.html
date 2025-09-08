@@ -1,0 +1,13 @@
+<div class="file-upload-container">
+  <h1>Cadastro de Lotes</h1>
+
+  <div class="tab-content">
+    <h2>Upload de Arquivo de Lote (.xlsx)</h2>
+    <input type="file" (change)="onLoteFileSelected($event)" accept=".csv,.xlsx" />
+    <button (click)="onLoteUpload()" [disabled]="!selectedLoteFile">Enviar Lote</button>
+
+    <div *ngIf="loteUploadMessage" [ngClass]="{ 'success-message': !isLoteError, 'error-message': isLoteError }">
+      {{ loteUploadMessage }}
+    </div>
+  </div>
+</div>
