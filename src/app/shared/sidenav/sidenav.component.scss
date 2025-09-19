@@ -160,6 +160,29 @@ $backdrop-background: rgba(0, 0, 0, 0.5); // Cor do backdrop
     a {
       display: block;
       padding: $sidenav-link-padding;
+      padding-left: 15%;
+      text-decoration: none;
+      color: $sidenav-text-color;
+      font-size: 1rem;
+      transition: background-color 0.2s ease-out, color 0.2s ease-out;
+
+      &:hover {
+      background-color: $sidenav-link-hover-background;
+      color: color.adjust($sidenav-text-color, $lightness: -10%);
+      }
+
+      &.active-link {
+      background-color: $sidenav-link-active-background;
+      color: $sidenav-link-active-color;
+      font-weight: 500;
+      }
+    }
+  }
+
+  .sidenav-item {
+        a {
+      display: block;
+      padding: $sidenav-link-padding;
       text-decoration: none;
       color: $sidenav-text-color;
       font-size: 1rem;

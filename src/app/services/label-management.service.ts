@@ -2,12 +2,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, of } from 'rxjs';
-// Importe LoteEntry aqui. Certifique-se de que ele está definido em '../models/label-entry.model'
 import { LabelEntry, ProductEntry, LoteEntry } from '../models/label-entry.model'; 
-import { environment } from '../../environments/environment';
+import { environment } from '../../environments/environment.prod';
 
 
-// **NOVA INTERFACE DE RESPOSTA**
 export interface ZPLResponse {
   zplContent: string;
   nameLabel?: string; // Adicione esta propriedade. Use '?' se for opcional ou pode vir null.
@@ -78,10 +76,14 @@ export class LabelManagementService {
    * @param loteNumber O número do lote a ser buscado.
    * @returns Um Observable com um array de LoteEntry.
    */
-  // **NOVO MÉTODO**
   getLoteEntriesByLoteNumber(loteNumber: string): Observable<LoteEntry[]> {
     // A rota da API que você criou é '/api/lote', e você passará o lote como um query parameter.
     return this.http.get<LoteEntry[]>(`${this.apiUrl}/lote?lote=${loteNumber}`);
+  }
+
+  syncRadarLots(): Observable<any> {
+    const radarSyncUrl = `${this.apiUrl}/wk-radar/lote`;
+    return this.http.post(radarSyncUrl, {});
   }
 
   getServerTime(): Observable<{ currentTime: string }> {

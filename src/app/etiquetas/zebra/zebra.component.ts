@@ -201,87 +201,94 @@ export class ZebraComponent implements OnInit, OnDestroy {
     return this.loteNumberInput.length === 11 && !this.isLoadingLoteLabels;
   }
 
-searchLabelsByLote(): void {
-  if (!this.isSearchButtonEnabled()) {
-    this.loteLabelsErrorMessage = 'Por favor, preencha o Lote corretamente.';
-    // Limpa estados antigos
-    this.selectedLoteLabel = null;
-    this.masterLoteZplContent = null;
-    this.zplContent = '';
-    this.renderLabel();
-    return;
-  }
-
-  this.isLoadingLoteLabels = true;
-  this.loteLabelsErrorMessage = null;
-  const loteComplete = this.loteNumberInput
-
-  // A chamada ao serviço agora só valida se o lote foi encontrado
-  this.labelManagementService.getLoteEntriesByLoteNumber(loteComplete).subscribe({
-    next: (loteEntries) => {
-      this.isLoadingLoteLabels = false;
-      if (loteEntries.length > 0) {
-        this.selectedLoteLabel = loteEntries[0]; // Guarda os dados do lote encontrado
-        this.loteLabelsErrorMessage = 'Lote validado com sucesso! Agora, por favor, selecione um produto.';
-        console.log('Lote validado:', this.selectedLoteLabel);
-        this.isSelectedProduct = true;
-        // AÇÃO TERMINA AQUI. Não buscamos mais o ZPL.
-      } else {
-        this.loteLabelsErrorMessage = 'Nenhum lote encontrado com este número.';
-        this.selectedLoteLabel = null;
-      }
-    },
-    error: (err) => {
-      this.isLoadingLoteLabels = false;
-      this.loteLabelsErrorMessage = 'Erro ao buscar o lote.';
+  searchLabelsByLote(): void {
+    if (!this.isSearchButtonEnabled()) {
+      this.loteLabelsErrorMessage = 'Por favor, preencha o Lote corretamente.';
+      // limpa estados antigos
       this.selectedLoteLabel = null;
-      console.error(err);
+      this.masterLoteZplContent = null;
+      this.zplContent = '';
+      this.renderLabel();
+      return;
     }
-  });
-}
 
+    this.isLoadingLoteLabels = true;
+    this.loteLabelsErrorMessage = 'Sincronizando lotes com o Radar...';
 
-onProductSelected(): void {
-  // Limpa o ZPL anterior
-  console.log('Frontend - Objeto do produto selecionado:', this.selectedProduct);
-  this.masterLoteZplContent = null;
-  this.zplContent = '';
-  this.errorMessage = null;
+    this.labelManagementService.syncRadarLots().subscribe({
+      next: (syncResponse) => {
+        console.log('Resposta da sincronização com o Radar:', syncResponse);
+        this.loteLabelsErrorMessage = 'Sincronização concluída. Verificando lote no banco de dados...';
 
-  if (!this.selectedProduct || !this.selectedProduct.label_id) {
-    this.renderLabel(); // Limpa a pré-visualização
-    if (this.selectedProduct) {
-      this.errorMessage = 'Este produto não tem um layout de etiqueta associado.';
-    }
-    return;
-  }
-
-  console.log(`Produto selecionado. Buscando layout com ID: ${this.selectedProduct.label_id}`);
-
-  this.labelManagementService.getLabelById(this.selectedProduct.label_id).subscribe({
-    next: (labelEntry) => {
-      if (labelEntry && labelEntry.originalContent) {
-        this.masterLoteZplContent = labelEntry.originalContent;
-        // Chama a função que cuida da pré-visualização
-        if (this.selectedProduct?.retalho?.toLowerCase() === 'sim') {
-            this.isMetragemEditable = true;
-            this.tamanhoNumberInput = ''; // Limpa para o usuário digitar
-          } else {
-            this.isMetragemEditable = false;
-            // Usa o tamanho padrão do produto como valor
-            this.tamanhoNumberInput = this.selectedProduct?.tamanho_padrao || '100';
+        const loteParaBuscar = this.loteNumberInput;
+        this.labelManagementService.getLoteEntriesByLoteNumber(loteParaBuscar).subscribe({
+          next: (loteEntries) => {
+            this.isLoadingLoteLabels = false;
+            if (loteEntries.length > 0) {
+              this.selectedLoteLabel = loteEntries[0];
+              this.loteLabelsErrorMessage = 'Lote validado com sucesso! Agora, por favor, selecione um produto.';
+              this.isSelectedProduct = true; // Libera o campo de produto
+            } else {
+              this.loteLabelsErrorMessage = 'Lote não encontrado no banco de dados após a sincronização.';
+              this.selectedLoteLabel = null;
+            }
+          },
+          error: (localSearchError) => {
+            this.isLoadingLoteLabels = false;
+            this.loteLabelsErrorMessage = 'Erro ao buscar o lote no banco de dados local.';
+            console.error(localSearchError);
           }
-
-          this.updatePreview(); // Chama a atualização da tela
-        } else {
-          // ...
-        }
+        });
       },
-      error: (err) => {
-        // ...
+      error: (syncError) => {
+        this.isLoadingLoteLabels = false;
+        this.loteLabelsErrorMessage = 'Erro fatal ao sincronizar com a API do Radar.';
+        console.error(syncError);
       }
     });
   }
+
+  onProductSelected(): void {
+    // Limpa o ZPL anterior
+    console.log('Frontend - Objeto do produto selecionado:', this.selectedProduct);
+    this.masterLoteZplContent = null;
+    this.zplContent = '';
+    this.errorMessage = null;
+
+    if (!this.selectedProduct || !this.selectedProduct.label_id) {
+      this.renderLabel(); // Limpa a pré-visualização
+      if (this.selectedProduct) {
+        this.errorMessage = 'Este produto não tem um layout de etiqueta associado.';
+      }
+      return;
+    }
+
+    console.log(`Produto selecionado. Buscando layout com ID: ${this.selectedProduct.label_id}`);
+
+    this.labelManagementService.getLabelById(this.selectedProduct.label_id).subscribe({
+      next: (labelEntry) => {
+        if (labelEntry && labelEntry.originalContent) {
+          this.masterLoteZplContent = labelEntry.originalContent;
+          // Chama a função que cuida da pré-visualização
+          if (this.selectedProduct?.retalho?.toLowerCase() === 'sim') {
+              this.isMetragemEditable = true;
+              this.tamanhoNumberInput = ''; // Limpa para o usuário digitar
+            } else {
+              this.isMetragemEditable = false;
+              // Usa o tamanho padrão do produto como valor
+              this.tamanhoNumberInput = this.selectedProduct?.tamanho_padrao || '100';
+            }
+
+            this.updatePreview(); // Chama a atualização da tela
+          } else {
+            // ...
+          }
+        },
+        error: (err) => {
+          // ...
+        }
+      });
+    }
 
   private generateFinalZpl(printDate: Date): string {
     if (!this.selectedProduct || !this.masterLoteZplContent) {
